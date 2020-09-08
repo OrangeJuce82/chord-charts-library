@@ -1,0 +1,143 @@
+++++++++++++++++++++
+	todo kwakers
+++++++++++++++++++++
+
+ / mieux referencer le site kwakers, annuaire etc... 
+ 
+ / Pouvoir ajouter son propre lien Ireal directement pour l'afficher et le partager sur internet
+
+ / gérer les Differentes erreur de base de données, mais aussi de parsing, d'affichage etc.. tout ça de manière élégante ;)
+ 
+ / gestion du multilangue 
+ 
+ / faire un systeme de statistique plus évoluer pour les user
+ 
+ / afficher plusieurs type d'accord, guitare , piano , etc....et aussi les modes à jouer dessus 
+ 
+ / faire un panneau d'administration disponible juste avec une sécurité apache
+ / securise l'acces par adresse IP/
+  
+ / Visualisation à terminer. manque la barre P	(pas important)
+
+ / adapter a taille du document a la page en javascript
+ 
+ / Bouton pour remonter tout en haut de la page
+
+ / Adapter la css pour les mobiles.
+
+ / faire et une FAQ et expliquer le fonctionnement du site dans la FAQ :
+
+ / Plus tard, modification des grilles en ligne directement. utilisation de JSON, array to JSON pour sauvegarder le format du fichier, très pratique et facile à parser.
+
+ / pouvoir réaliser une image de la grille afin de la partager ou de la sauvegarder.
+
+ / finir de décrypter les quelques 1% manquant
+ 
+ / Mettre à jour la BDD avec d'autres lien / script sh ou php avec wget en local /
+ 
+ / rechercher d'autre format de tablatures et créer d'autres parser
+
+ / Supprimer les doublons / du coup, utiliser notre systeme de sauvegarde en JSON pour plus de flexibilte, et permettre l'importation d'autre tablature.
+ 
+ / Coder un player d'accompagnement, essayer webkit audio 
+ 
+ / Editer les accords directement avec le clavier MIDI
+ 
+ / Pouvoir se connecter avec des Open Id et Ajouter une pages perso avec des favoris, des playlist, etc...
+ / une playlist est la concatenation de different morceaux, il est donc possible de les exporter vers les differents appareils.
+ 
+ / Lecteur midi en javascript, et gm font pour les different son 
+ / Possibilite de brancher le midi pour lire les accord
+ 
+ / Autour de la communaute, peut se créer un mouvement pour le boeuf
+ / 
+ 
+ 
+##################################################################
+
+pb de formatage du a un caractère Z tout seul en fin de chaine .....
+7037
+7508
+7592
+8999
+
+Teste sur la chaine fait un multiple de 50 + 1
+apparement ça serait ça....il faut donc encore un peu mieux tester.
+
+ATTENTION PB SUR PARSER avec les caractères après certains accord sans les * *
+	
+
+41 partition pas décrypté ....
+	
+SELECT *
+FROM `ireal_songs_modif`
+WHERE `NewLien` = ''
+LIMIT 0 , 30
+
+
+##################################################################
+
+5/Afficher le nombre de grilles disponibles
+SELECT COUNT(*) AS count FROM `irealb_songs` WHERE 1
+
+##################################################################
+
+7 / soumettre un bug de visualisation et s'y coller quand on a le temps
+injecter l'info en bdd
+
+##################################################################
+
+8/ mettre le projet sur github ???
+
+##################################################################
+
+
+##################################################################
+
+
+11 / nettoyer la base de donnnées de fichier commerciaux : type lessons online shop .....
+
+{T44Ab7XyQKcl LZ x LZ x }<Advanced guitar lessons cover some tricky concepts,>XyQXyQXyQXyQXyQ <but things always come back to the fundamentals.>XyQXyQXyQXyQXyQ <Music Education for Guitarists: LeadCatPress.com>
+
+
+##################################################################
+
+
+function resizeGridA4()
+{
+  width = 100 * 3.779528;
+  height = 150 * 3.779528;
+  
+  width_Grid_px  	= $("#grilleContainer").width();
+  height_Grid_px 	= $("#grilleContainer").height();
+  
+  ratio  = Math.min(width/width_Grid_px,height/height_Grid_px);
+  $("#grilleContainer").attr("style","transform : scale("+ratio+");");
+  
+  //.clone().appendTo( ".goodbye" );
+}
+
+function beforePrint(){
+    resizeGridA4();
+}
+    
+function afterPrint() {
+    $("#grilleContainer").attr("style","transform : scale(1);");
+}
+    
+    
+    if (window.matchMedia) {
+        var mediaQueryList = window.matchMedia('print');
+        mediaQueryList.addListener(function(mql) {
+            if (mql.matches) {
+                beforePrint();
+            } else {
+                afterPrint();
+            }
+        });
+    }
+    
+    window.onbeforeprint = beforePrint;
+    window.onafterprint = afterPrint;
+});
+
