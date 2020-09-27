@@ -1,4 +1,0 @@
-PerlSetVar AuthFile /admin/.htpasswd
-AuthName "Acces Restreint"
-AuthType Basic
-require valid-user
