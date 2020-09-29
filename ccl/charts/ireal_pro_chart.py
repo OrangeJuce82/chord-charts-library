@@ -20,32 +20,30 @@ class IRealProUrl:
     >>> url = 'irealb://Yats%C4%B1n%20Y0-D%20Z%20LD[...]g%3D100%3D3'
     >>> charts = IRealProChart(url)
     """
-    chart_separator = r'%3D%3D%3D|==='
     meta_separator = r'%3D|='
 
     def __init__(self, url):
         if not isinstance(url, str):
             raise TypeError('URL is not a string.')
 
-        self.scheme, self.path = url.strip().split('://')
-        if re.match(self.chart_separator, self.path):
-            raise ValueError(
-                f'The URL contains {self.chart_separator}, you have to use factory method `IRealProUrl.create_charts`.'
-            )
-
+        self.scheme, self.path = IRealProUrl.split_scheme_and_path(url)
+        IRealProUrl.check_scheme_exists(self.scheme)
         metas = re.split(self.meta_separator, self.path)
         self.metas = list(map(lambda x: unescape(unquote_plus(x)).strip(), metas))
 
-        if not IRealProScheme.has_value(self.scheme):
-            raise ValueError('This url is not a valid iRealPro song')
-
-        if self.scheme == IRealProScheme.IREALB.value and not len(self.metas) == 10:
-            raise ValueError('IREALB url must have 10 metas')
-        elif self.scheme == IRealProScheme.IREALBOOK.value and not len(self.metas) == 6:
-            raise ValueError('IREALBOOK url must have 6 metas')
-
     def __str__(self):
         return f'{self.scheme}://{self.path}'
+
+    @staticmethod
+    def split_scheme_and_path(url):
+        url = url.strip()
+        pos = url.find('://')
+        assert pos != -1, f"We can't find `://` in the url : {url}"
+        return url[:pos], url[pos + 3:]
+
+    @staticmethod
+    def check_scheme_exists(scheme):
+        assert IRealProScheme.has_value(scheme), 'Scheme must be irealb or irealbook'
 
     @classmethod
     def make_charts(cls, url):
@@ -63,18 +61,23 @@ class IRealProUrl:
         if not isinstance(url, str):
             raise TypeError('URL is not a string.')
 
-        scheme, path = url.strip().split('://')
-        paths = re.split(IRealProUrl.chart_separator, path)
-        for path in paths:
-            # Because playlist contains a last not valid path, we check metas before to avoid Exception
-            metas = re.split(IRealProUrl.meta_separator, path)
-            is_valid = (
-                    (scheme == IRealProScheme.IREALB.value and len(metas) == 10)
-                    or
-                    (scheme == IRealProScheme.IREALBOOK.value and len(metas) == 6)
-            )
-            if is_valid:
-                yield IRealProChart(f'{scheme}://{path}')
+        scheme, path = IRealProUrl.split_scheme_and_path(url)
+        IRealProUrl.check_scheme_exists(scheme)
+        metas_pack = re.split(IRealProUrl.meta_separator, path)
+        step = 12 if scheme == IRealProScheme.IREALB.value else 6
+        playlist = metas_pack[-1] if len(metas_pack) % step == 1 else None
+
+        # Keep only valid metas chunks
+        meta_chunks = []
+        for x in range(0, len(metas_pack), step):
+            metas = metas_pack[x:x + step]
+            if any(metas) and len(metas) > 1:
+                meta_chunks.append(metas)
+
+        for metas in meta_chunks:
+            if metas and len(metas) == step:
+                path = "=".join(metas)
+                yield IRealProChart(f'{scheme}://{path}', playlist)
 
 
 class IRealProChart(Chart):
@@ -89,7 +92,7 @@ class IRealProChart(Chart):
     class Meta:
         table_name = 'chart'
 
-    def __init__(self, url):
+    def __init__(self, url, playlist=None):
         """IRealProChart constructor
 
         Parameters
@@ -98,8 +101,12 @@ class IRealProChart(Chart):
             The URL of the chart
         """
         self.url = url if isinstance(url, IRealProUrl) else IRealProUrl(url)
-        metas = self.url.metas
+        self.playlist = playlist
         self.is_realb = self.url.scheme == IRealProScheme.IREALB.value
+
+        # Merge metas with empty list to avoid problems if metas are not filled correctly
+        metas = [None] * 12
+        metas[:len(self.url.metas)] = self.url.metas
 
         # Format composer : Mysterious hack from iRealPro
         composer = metas[1]
@@ -119,11 +126,11 @@ class IRealProChart(Chart):
         )
 
         # Fill other attributes
-        self.time_signature = None if self.is_realb else metas[4]
+        self.time_signature = metas[4]
         self.chart = IRealProChart.decrypt(metas[6]) if self.is_realb else metas[5]
-        self.sequencer_style = metas[7] if self.is_realb else None
-        self.bmp = metas[8] if self.is_realb else None
-        self.repeats = metas[9] if self.is_realb else None
+        self.sequencer_style = metas[7]
+        self.bmp = metas[8]
+        self.repeats = metas[9]
 
     @staticmethod
     def decrypt(encrypted):
