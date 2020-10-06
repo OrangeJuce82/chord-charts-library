@@ -5,8 +5,6 @@ from ccl.charts.ireal_pro_chart import IRealProUrl, IRealProScheme, IRealProChar
 filepath = "/Users/florian/GitHub/chord-charts-library/data/irealb.csv"
 with open(filepath, "r") as csv:
     data = csv.read()
-    data = data.replace('<br />\n', '<br />')
-    data = data.replace('"', '')
     data = "\n".join(set(data.splitlines()))  # remove duplicate lines
 
 base, ext = os.path.splitext(filepath)

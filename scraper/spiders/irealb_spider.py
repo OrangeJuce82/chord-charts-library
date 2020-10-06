@@ -28,6 +28,7 @@ class IRealBSpider(scrapy.Spider):
     def parse_thread(self, response):
         charts = [a.attrib['href'] for a in response.xpath("//a[starts-with(@href,'irealb')]")]
         for chart in charts:
+            chart = chart.replace('\n', '').replace('"', '')
             yield {"chart": chart}
 
         for thread in self.next(response):

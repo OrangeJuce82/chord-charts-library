@@ -1,4 +1,4 @@
-# Scrapy settings for charts-scraper project
+# Scrapy settings for scraper project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -7,13 +7,13 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'charts-scraper'
+BOT_NAME = 'scraper'
 
-SPIDER_MODULES = ['charts-scraper.spiders']
-NEWSPIDER_MODULE = 'charts-scraper.spiders'
+SPIDER_MODULES = ['scraper.spiders']
+NEWSPIDER_MODULE = 'scraper.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-# USER_AGENT = 'charts-scraper (+http://www.yourdomain.com)'
+# USER_AGENT = 'scraper (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -45,13 +45,13 @@ DOWNLOAD_DELAY = 1
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 # SPIDER_MIDDLEWARES = {
-#    'charts-scraper.middlewares.ScraperSpiderMiddleware': 543,
+#    'scraper.middlewares.ScraperSpiderMiddleware': 543,
 # }
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 # DOWNLOADER_MIDDLEWARES = {
-#    'charts-scraper.middlewares.ScraperDownloaderMiddleware': 543,
+#    'scraper.middlewares.ScraperDownloaderMiddleware': 543,
 # }
 
 # Enable or disable extensions
@@ -63,7 +63,7 @@ DOWNLOAD_DELAY = 1
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 # ITEM_PIPELINES = {
-#    'charts-scraper.pipelines.ScraperPipeline': 300,
+#    'scraper.pipelines.ScraperPipeline': 300,
 # }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -86,3 +86,7 @@ HTTPCACHE_EXPIRATION_SECS = 0
 HTTPCACHE_DIR = 'httpcache'
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+FEED_EXPORTERS = {
+    'headless': 'scraper.exporters.HeadlessCsvItemExporter',
+}
