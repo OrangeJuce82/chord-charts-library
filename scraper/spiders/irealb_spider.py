@@ -3,27 +3,33 @@ import scrapy
 
 class IRealBSpider(scrapy.Spider):
     name = 'irealb'
-    base_url = 'https://irealb.com/forums/'
+    base_url = 'https://forums.irealpro.com'
 
     def start_requests(self):
         yield scrapy.Request(url=self.base_url, callback=self.parse)
 
-    def parse(self, response):
-        forums = [a.attrib['href'] for a in response.css('#forums .forumtitle a')]
-        for forum in forums:
-            yield scrapy.Request(f'{self.base_url}{forum}', self.parse_forum)
+    @staticmethod
+    def get_links(response, start_with ="/"):
+        return list(set(a.attrib['href'] for a in response.xpath(f"//a[starts-with(@href,'{start_with}')]")))
 
-    def next(self, response):
-        return list(set([a.attrib['href'] for a in response.css('.prev_next a[rel=next]')]))
+    def parse(self, response):
+        rel_links = IRealBSpider.get_links(response, "/forums/")
+        for rel_link in rel_links:
+            yield scrapy.Request(f'{self.base_url}{rel_link}', self.parse_forum)
 
     def parse_forum(self, response):
         print("parse_forum", response.url)
-        threads = [a.attrib['href'] for a in response.css('#threadlist .threadtitle a')]
-        for thread in threads:
-            yield scrapy.Request(f'{self.base_url}{thread}', self.parse_thread)
+        rel_links = IRealBSpider.get_links(response, "/threads/")
+        for rel_link in rel_links:
+            yield scrapy.Request(f'{self.base_url}{rel_link}', self.parse_thread)
 
-        for forum in self.next(response):
-            yield scrapy.Request(f'{self.base_url}{forum}', self.parse_forum)
+        self.parse_next_page(response, func=self.parse_forum)
+
+    def parse_next_page(self, response, func):
+        next_link = response.css("a.pageNav-jump--next")
+        if "href" in next_link.attrib:
+            next_link = next_link.attrib['href']
+            yield scrapy.Request(f'{self.base_url}{next_link}', func)
 
     def parse_thread(self, response):
         charts = [a.attrib['href'] for a in response.xpath("//a[starts-with(@href,'irealb')]")]
@@ -31,5 +37,4 @@ class IRealBSpider(scrapy.Spider):
             chart = chart.replace('\n', '').replace('"', '')
             yield {"chart": chart}
 
-        for thread in self.next(response):
-            yield scrapy.Request(f'{self.base_url}{thread}', self.parse_thread)
+        self.parse_next_page(response, func=self.parse_thread)

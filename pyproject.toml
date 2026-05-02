@@ -1,0 +1,23 @@
+[project]
+name = "chord-charts-library"
+version = "0.1.0"
+description = "A library for chord charts"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+  {name = "OrangePeelFX"}
+]
+keywords = ["chord", "charts", "music"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "scrapy",
+  "peewee"
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/chord-charts-library"
