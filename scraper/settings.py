@@ -7,16 +7,16 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'scraper'
+BOT_NAME = "scraper"
 
-SPIDER_MODULES = ['scraper.spiders']
-NEWSPIDER_MODULE = 'scraper.spiders'
+SPIDER_MODULES = ["scraper.spiders"]
+NEWSPIDER_MODULE = "scraper.spiders"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'scraper (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32
@@ -83,10 +83,18 @@ AUTOTHROTTLE_DEBUG = True
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
 HTTPCACHE_ENABLED = True
 HTTPCACHE_EXPIRATION_SECS = 0
-HTTPCACHE_DIR = 'httpcache'
+HTTPCACHE_DIR = "httpcache"
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+# Configure feeds to export scraped data
+FEEDS = {
+    "data/irealb2.csv": {
+        "format": "headless",
+        "overwrite": True,
+    },
+}
+
 FEED_EXPORTERS = {
-    'headless': 'scraper.exporters.HeadlessCsvItemExporter',
+    "headless": "scraper.exporters.HeadlessCsvItemExporter",
 }

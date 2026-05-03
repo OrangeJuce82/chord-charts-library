@@ -1,10 +1,11 @@
 from peewee import *
 
-database = SqliteDatabase('db/chord_charts.sqlite')
+database = SqliteDatabase("db/chord_charts.sqlite")
 
 
 class UnknownField(object):
-    def __init__(self, *_, **__): pass
+    def __init__(self, *_, **__):
+        pass
 
 
 class BaseModel(Model):
@@ -21,7 +22,7 @@ class Chart(BaseModel):
     tone = CharField(null=True)
 
     class Meta:
-        table_name = 'chart'
+        table_name = "chart"
 
 
 class SqliteSequence(BaseModel):
@@ -29,5 +30,5 @@ class SqliteSequence(BaseModel):
     seq = BareField(null=True)
 
     class Meta:
-        table_name = 'sqlite_sequence'
+        table_name = "sqlite_sequence"
         primary_key = False

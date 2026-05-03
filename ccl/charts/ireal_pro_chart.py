@@ -8,8 +8,9 @@ from ccl.db.models import Chart
 
 class IRealProScheme(BaseEnum):
     """Enum for iRealPro schemes"""
-    IREALB = 'irealb'
-    IREALBOOK = 'irealbook'
+
+    IREALB = "irealb"
+    IREALBOOK = "irealbook"
 
 
 class IRealProUrl:
@@ -20,11 +21,12 @@ class IRealProUrl:
     >>> url = 'irealb://Yats%C4%B1n%20Y0-D%20Z%20LD[...]g%3D100%3D3'
     >>> charts = IRealProChart(url)
     """
-    meta_separator = r'%3D|='
+
+    meta_separator = r"%3D|="
 
     def __init__(self, url):
         if not isinstance(url, str):
-            raise TypeError('URL is not a string.')
+            raise TypeError("URL is not a string.")
 
         self.scheme, self.path = IRealProUrl.split_scheme_and_path(url)
         IRealProUrl.check_scheme_exists(self.scheme)
@@ -32,18 +34,18 @@ class IRealProUrl:
         self.metas = list(map(lambda x: unescape(unquote_plus(x)).strip(), metas))
 
     def __str__(self):
-        return f'{self.scheme}://{self.path}'
+        return f"{self.scheme}://{self.path}"
 
     @staticmethod
     def split_scheme_and_path(url):
         url = url.strip()
-        pos = url.find('://')
+        pos = url.find("://")
         assert pos != -1, f"We can't find `://` in the url : {url}"
-        return url[:pos], url[pos + 3:]
+        return url[:pos], url[pos + 3 :]
 
     @staticmethod
     def check_scheme_exists(scheme):
-        assert IRealProScheme.has_value(scheme), 'Scheme must be irealb or irealbook'
+        assert IRealProScheme.has_value(scheme), "Scheme must be irealb or irealbook"
 
     @classmethod
     def make_charts(cls, url):
@@ -59,7 +61,7 @@ class IRealProUrl:
             Charts parsed from the URL
         """
         if not isinstance(url, str):
-            raise TypeError('URL is not a string.')
+            raise TypeError("URL is not a string.")
 
         scheme, path = IRealProUrl.split_scheme_and_path(url)
         IRealProUrl.check_scheme_exists(scheme)
@@ -70,14 +72,14 @@ class IRealProUrl:
         # Keep only valid metas chunks
         meta_chunks = []
         for x in range(0, len(metas_pack), step):
-            metas = metas_pack[x:x + step]
+            metas = metas_pack[x : x + step]
             if any(metas) and len(metas) > 1:
                 meta_chunks.append(metas)
 
         for metas in meta_chunks:
             if metas and len(metas) == step:
                 path = "=".join(metas)
-                yield IRealProChart(f'{scheme}://{path}', playlist)
+                yield IRealProChart(f"{scheme}://{path}", playlist)
 
 
 class IRealProChart(Chart):
@@ -90,7 +92,7 @@ class IRealProChart(Chart):
     """
 
     class Meta:
-        table_name = 'chart'
+        table_name = "chart"
 
     def __init__(self, url, playlist=None):
         """IRealProChart constructor
@@ -106,13 +108,13 @@ class IRealProChart(Chart):
 
         # Merge metas with empty list to avoid problems if metas are not filled correctly
         metas = [None] * 12
-        metas[:len(self.url.metas)] = self.url.metas
+        metas[: len(self.url.metas)] = self.url.metas
 
         # Format composer : Mysterious hack from iRealPro
         composer = metas[1]
-        if composer.count(' ') == 1:
-            last_name, first_name = composer.split(' ')
-            composer = f'{first_name} {last_name}'
+        if composer.count(" ") == 1:
+            last_name, first_name = composer.split(" ")
+            composer = f"{first_name} {last_name}"
 
         # Call the parent constructor with the base attributes
         Chart.__init__(
@@ -150,7 +152,7 @@ class IRealProChart(Chart):
         ----------
         .. [1] https://github.com/realtimerealbook/ireal-parse/blob/master/src/unscramble.js
         """
-        decrypted = ''
+        decrypted = ""
         while len(encrypted) > 50:
             chunck, encrypted = encrypted[:50], encrypted[50:]
             if len(encrypted) < 2:
@@ -158,9 +160,13 @@ class IRealProChart(Chart):
             else:
                 # the first 5 characters are switched with the last 5 then characters from 10 to 24 are also switched
                 decrypted += (
-                        chunck[45:50][::-1] + chunck[5:10] +
-                        chunck[26:40][::-1] + chunck[24:26] + chunck[10:24][::-1] +
-                        chunck[40:45] + chunck[0:5][::-1]
+                    chunck[45:50][::-1]
+                    + chunck[5:10]
+                    + chunck[26:40][::-1]
+                    + chunck[24:26]
+                    + chunck[10:24][::-1]
+                    + chunck[40:45]
+                    + chunck[0:5][::-1]
                 )
         decrypted = decrypted + encrypted
         return decrypted
