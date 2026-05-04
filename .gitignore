@@ -133,3 +133,4 @@ dmypy.json
 # MACOS
 .DS_Store
 archive/
+/cli/parser.js

@@ -1,5 +1,4 @@
 import scrapy
-from scraper.items import ScraperItem
 
 
 class IRealBSpider(scrapy.Spider):

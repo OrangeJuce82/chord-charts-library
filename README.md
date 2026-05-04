@@ -15,13 +15,6 @@ uv run scrapy crawl irealb
 
 This will start the IRealB spider and collect chord chart data.
 
-## TODO list
-
-* Make a Database model only for specific chart
-* Then later make a SQL View with chart from different partners
-* Update Ireal Pro Chart with Datetime and last search, to add only new messages
-* Remove duplicates in CSV directly before insert: Sometimes data are stored url_encoded and not encoded
-* Separate URL directly in the CSV
 
 ## Post Processing
 
@@ -38,12 +31,12 @@ To check the size of output files, run:
 ```[irealb_20260503_sorted.csv](data/irealb_20260503_sorted.csv)
 watch -n 2 '
 a=$(wc -l < data/irealb_20260503_sorted.csv); 
-b=$(wc -l < data/irealb_2025_sorted.csv); 
+b=$(wc -l < data/irealb_20260503_cleaned.csv); 
 sa=$(du -h data/irealb_20260503_sorted.csv | cut -f1); 
-sb=$(du -h data/irealb_2025_sorted.csv | cut -f1); 
+sb=$(du -h data/irealb_20260503_cleaned.csv | cut -f1); 
 
 echo "irealb_20260503_sorted.csv: $a lignes | $sa"; 
-echo "irealb_2025_sorted.csv: $b lignes | $sb"; 
+echo "irealb_20260503_cleaned.csv: $b lignes | $sb"; 
 echo "Différence lignes: $((b-a))"
 '
 ```
