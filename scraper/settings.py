@@ -89,7 +89,7 @@ HTTPCACHE_DIR = "httpcache"
 
 # Configure feeds to export scraped data
 FEEDS = {
-    "data/irealb2.csv": {
+    "data/irealb_urls.csv": {
         "format": "headless",
         "overwrite": True,
     },
