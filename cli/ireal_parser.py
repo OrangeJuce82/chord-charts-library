@@ -182,7 +182,7 @@ class Song:
             self.composer = Song.parse_composer(parts[1].strip())
             self.style = parts[3].strip()
             self.key = parts[4]
-            self.transpose = int(parts[5]) if parts[5] else 0  # TODO
+            self.transpose = int(parts[5]) if parts[5] else 0
             self.groove = parts[7]
             self.bpm = int(parts[8]) if parts[8] else 0
             self.repeats = int(parts[9]) if parts[9] else 3
