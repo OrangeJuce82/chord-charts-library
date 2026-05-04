@@ -2,7 +2,7 @@
 iReal Pro playlist merger and deduplicator.
 
 Usage:
-    python ireal_merge.py INPUT OUTPUT [--playlist-name NAME] [--verbose]
+    python ireal_song_extractor.py INPUT OUTPUT [--playlist-name NAME] [--verbose]
 
 Reads a file where each line is an irealb:// playlist URL, extracts all songs
 from every playlist, removes duplicates (by title + composer), and writes the

@@ -1,17 +1,13 @@
 # chord-charts-library
 A chord chart library
 
-## Database Models
-If you want to generate models from your SQLite, just run:
-```
-python -m pwiz -e sqlite db/chord_charts.sqlite > ccl/db/models.py
-```
 
 ## Scraping
 To scrape data from irealb.com, run the spider with:
 ```
 uv run scrapy crawl irealb
 ```
+
 
 This will start the IRealB spider and collect chord chart data.
 
@@ -21,24 +17,15 @@ This will start the IRealB spider and collect chord chart data.
 Clean, Sort then filter duplicate lines once crawling is finished
 
 ```
-sed 's/"//g' data/irealb.csv > data/irealb_cleaned.csv
-sort data/irealb_cleaned.csv | uniq > data/irealb_sorted.csv
+sed 's/"//g' data/irealb_urls_20260503.txt > data/irealb_urls_20260503_cleaned.txt
+sort data/irealb_urls_20260503_cleaned.txt | uniq > data/irealb_urls_20260503_sorted.txt
 ```
 
+Then run CLI to make a CSV with song and metadata
 
-
-To check the size of output files, run:
-```[irealb_20260503_sorted.csv](data/irealb_20260503_sorted.csv)
-watch -n 2 '
-a=$(wc -l < data/irealb_20260503_sorted.csv); 
-b=$(wc -l < data/irealb_20260503_cleaned.csv); 
-sa=$(du -h data/irealb_20260503_sorted.csv | cut -f1); 
-sb=$(du -h data/irealb_20260503_cleaned.csv | cut -f1); 
-
-echo "irealb_20260503_sorted.csv: $a lignes | $sa"; 
-echo "irealb_20260503_cleaned.csv: $b lignes | $sb"; 
-echo "Différence lignes: $((b-a))"
-'
+```
+uv run cli/ireal_song_extractor.py data/irealb_urls_20260503_sorted.txt irealb_songs_20260503.txt
+uv run cli/ireal_csv_maker.py data/irealb_songs_20260503.txt data/irealb_songs_with_metadata_20260503.csv
 ```
 
 
