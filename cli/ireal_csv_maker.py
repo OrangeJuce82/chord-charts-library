@@ -13,8 +13,6 @@ from __future__ import annotations
 import csv
 import uuid
 from pathlib import Path
-from typing import Optional
-from urllib.parse import unquote
 
 import typer
 from rich.console import Console
@@ -62,17 +60,19 @@ def _song_to_row(song: Song, raw_url: str, add_uuid: bool) -> dict:
     row: dict = {}
     if add_uuid:
         row["id"] = str(uuid.uuid4())
-    row.update({
-        "url": raw_url,
-        "title": song.title,
-        "composer": song.composer,
-        "style": song.style,
-        "key": song.key,
-        "transpose": song.transpose,
-        "groove": song.groove,
-        "bpm": song.bpm,
-        "repeats": song.repeats,
-    })
+    row.update(
+        {
+            "url": raw_url,
+            "title": song.title,
+            "composer": song.composer,
+            "style": song.style,
+            "key": song.key,
+            "transpose": song.transpose,
+            "groove": song.groove,
+            "bpm": song.bpm,
+            "repeats": song.repeats,
+        }
+    )
     return row
 
 
@@ -174,9 +174,7 @@ def main(
     )
 
     if errors:
-        console.print(
-            f"[yellow]⚠ {len(errors)} URL(s) failed:[/yellow]"
-        )
+        console.print(f"[yellow]⚠ {len(errors)} URL(s) failed:[/yellow]")
         for url, msg in errors:
             short = url[:70] + ("…" if len(url) > 70 else "")
             console.print(f"  [red]✗[/red] {short}")
@@ -187,9 +185,18 @@ def main(
     if show_preview and rows:
         preview_rows = rows[:10]
         preview_cols = (["id"] if add_uuid else []) + [
-            "title", "composer", "style", "key", "bpm", "groove", "transpose", "repeats"
+            "title",
+            "composer",
+            "style",
+            "key",
+            "bpm",
+            "groove",
+            "transpose",
+            "repeats",
         ]
-        table = Table(title=f"Preview ({len(preview_rows)} / {len(rows)})", show_lines=False)
+        table = Table(
+            title=f"Preview ({len(preview_rows)} / {len(rows)})", show_lines=False
+        )
         for col in preview_cols:
             style = "cyan" if col == "title" else ("dim" if col == "id" else "")
             table.add_column(col, style=style)
@@ -197,6 +204,7 @@ def main(
             # Truncate uuid for readability in preview
             def fmt(col: str, val: str) -> str:
                 return val[:8] + "…" if col == "id" else val
+
             table.add_row(*[fmt(c, str(row[c])) for c in preview_cols])
         console.print()
         console.print(table)
