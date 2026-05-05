@@ -24,7 +24,7 @@ sort data/irealb_urls_20260503_cleaned.txt | uniq > data/irealb_urls_20260503_so
 Then run CLI to make a CSV with song and metadata
 
 ```
-uv run cli/ireal_song_extractor.py data/irealb_urls_20260503_sorted.txt irealb_songs_20260503.txt
+uv run cli/ireal_song_extractor.py data/irealb_urls_20260503_sorted.txt data/irealb_songs_20260503.txt
 uv run cli/ireal_csv_maker.py data/irealb_songs_20260503.txt data/irealb_songs_with_metadata_20260503.csv
 ```
 

@@ -1,18 +1,52 @@
 """
-The iReal Pro parser is derived from
-https://github.com/daumling/ireal-renderer
-which is itself derived from
-https://github.com/pianosnake/ireal-reader
+iReal Pro URL parser.
 
-None of those modules did exactly what is needed here, namely return
-a full structure that can be iterated downstream.
+Public API
+----------
+parse_ireal_url(url)          → (scheme, song_parts)
+parse_ireal_song(url)         → Song        (raises if URL contains several songs)
+parse_ireal_playlist(url)     → Playlist    (one or more songs)
+
+Song.from_url(url)            → Song
+Playlist.from_url(url)        → Playlist
+
+Derived from:
+  https://github.com/daumling/ireal-renderer
+  https://github.com/pianosnake/ireal-reader
 """
 
 import re
-import difflib
+from enum import Enum
 from urllib.parse import unquote
 from dataclasses import dataclass, field
 from typing import Optional
+
+# ---------------------------------------------------------------------------
+# Errors
+# ---------------------------------------------------------------------------
+
+
+class IRealParseError(Exception):
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Scheme enum
+# ---------------------------------------------------------------------------
+
+
+class IRealScheme(str, Enum):
+    """
+    URL scheme used by iReal Pro.
+
+    IREALB     — current format ('irealb://')
+    IREALBOOK  — legacy format  ('irealbook://')
+
+    Inheriting from str allows direct use in string contexts
+    """
+
+    IREALB = "irealb"
+    IREALBOOK = "irealbook"
 
 
 # ---------------------------------------------------------------------------
@@ -81,35 +115,37 @@ def _obfusc50(s: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Diff helper  (replaces the fast-diff npm package)
+# URL parsing helpers
 # ---------------------------------------------------------------------------
 
 
-def _diff(a: str, b: str) -> list[tuple[int, str]]:
+def parse_ireal_url(url: str) -> tuple[IRealScheme, list[str]]:
     """
-    Character-level diff of two strings using difflib.SequenceMatcher,
-    returning a list of (op, text) tuples that mirrors the fast-diff format:
-      0  = equal
-      1  = inserted (in b but not a)
-     -1  = deleted  (in a but not b)
+    Parse an iReal Pro URL and return (scheme, song_parts).
 
-    Used by Playlist to detect multi-part songs: the parts of the same song
-    have the same title except for the part number, so the first diff op must
-    be an equality and every differing run must consist solely of digits.
+    This is the low-level split: it extracts the scheme and the list of
+    encoded song strings, without any knowledge of the playlist name.
+    The playlist name (last segment when multiple songs are present) is
+    left to the caller — see parse_ireal_playlist().
+
+    Returns
+    -------
+    scheme     : IRealScheme.IREALB or IRealScheme.IREALBOOK
+    song_parts : list of encoded segments (may include playlist name as last item)
     """
-    matcher = difflib.SequenceMatcher(None, a, b, autojunk=False)
-    result = []
-    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        if tag == "equal":
-            result.append((0, a[i1:i2]))
-        elif tag == "replace":
-            result.append((-1, a[i1:i2]))
-            result.append((1, b[j1:j2]))
-        elif tag == "delete":
-            result.append((-1, a[i1:i2]))
-        elif tag == "insert":
-            result.append((1, b[j1:j2]))
-    return result
+
+    m = re.search(r"(irealb(?:ook)?):\/\/(.*)", url, re.DOTALL)
+    if not m:
+        raise ValueError("No iReal Pro URL found in input")
+
+    scheme = IRealScheme(m.group(1))
+    body = m.group(2).rstrip("'\"")
+    pattern = r"%20=" if scheme == IRealScheme.IREALBOOK else r"===|%3D%3D%3D"
+    encoded_parts = re.split(pattern, body)  # songs are separated by ===
+
+    # Filter empty part
+    encoded_parts = [encoded_part for encoded_part in encoded_parts if encoded_part]
+    return scheme, encoded_parts
 
 
 # ---------------------------------------------------------------------------
@@ -146,48 +182,71 @@ class Song:
         CHORD_RE2,
     ]
 
-    def __init__(
-        self, encoded_part: str, old_format: bool = False, scheme: str = "irealb"
-    ):
-        self.cells: list[Cell] = []
-        self.music_xml: str = ""
-        # Raw segment string as extracted from the playlist URL (before any parsing).
-        # Used to reconstruct the original irealb:// URL for export.
-        self.encoded_part: str = encoded_part
-        # URL scheme: 'irealb' (new format) or 'irealbook' (old format).
-        # Preserved so the original URL can be reconstructed exactly.
-        self.scheme: str = scheme
+    # ------------------------------------------------------------------
+    # Construction
+    # ------------------------------------------------------------------
 
-        ireal: str = unquote(encoded_part)
+    def __init__(self, encoded_part: str, scheme: IRealScheme = IRealScheme.IREALB):
+        self.url: str = f"{scheme.value}://{encoded_part}"
+        self.scheme: IRealScheme = scheme
+        self.encoded_part: str = encoded_part
+
+        ireal = unquote(encoded_part)
         if not ireal:
-            self.title = ""
-            self.composer = ""
-            self.style = ""
-            self.key = ""
+            self.title = self.composer = self.style = self.key = self.groove = ""
+            self.transpose = self.bpm = self.repeats = 0
+            self.cells: list[Cell] = []
+            return
+
+        parts = ireal.split("=")
+
+        def get(i, default=""):
+            return parts[i] if i < len(parts) else default
+
+        if scheme == IRealScheme.IREALBOOK:
+            if len(parts) > 6:
+                raise Exception(f"Too many parts: {len(parts)} (expected < 6)")
+
+            self.title = self.parse_title(get(0, "").strip())
+            self.composer = self.parse_composer(get(1, "").strip())
+            self.style = get(2, "").strip()
+            self.key = get(3, "")
             self.transpose = 0
             self.groove = ""
             self.bpm = 0
-            self.repeats = 0
-            return
+            self.repeats = 3
 
-        parts = ireal.split("=")  # split on one sign, remove the blanks
-        if old_format:
-            self.title = Song.parse_title(parts[0].strip())
-            self.composer = Song.parse_composer(parts[1].strip())
-            self.style = parts[2].strip()
-            self.key = parts[3]
-            self.cells = self._parse(parts[5])
+            raw_cells = get(5, "")
+            self.cells = self._parse(raw_cells)
+
         else:
-            self.title = Song.parse_title(parts[0].strip())
-            self.composer = Song.parse_composer(parts[1].strip())
-            self.style = parts[3].strip()
-            self.key = parts[4]
-            self.transpose = int(parts[5]) if parts[5] else 0
-            self.groove = parts[7]
-            self.bpm = int(parts[8]) if parts[8] else 0
-            self.repeats = int(parts[9]) if parts[9] else 3
-            music = parts[6].split("1r34LbKcu7")
-            self.cells = self._parse(_unscramble(music[1]))
+            if len(parts) > 10:
+                raise Exception(f"Too many parts: {len(parts)} (expected < 10)")
+
+            self.title = self.parse_title(get(0, "").strip())
+            self.composer = self.parse_composer(get(1, "").strip())
+            self.style = get(3, "").strip()
+            self.key = get(4, "").strip()
+
+            self.transpose = int(get(5, "0") or 0)
+            self.groove = get(7, "").strip()
+            self.bpm = int(get(8, "0") or 0)
+            self.repeats = int(get(9, "3") or 3)
+
+            self.cells = []
+            raw_cells = get(6, "")
+            if raw_cells.startswith("1r34LbKcu7"):
+                raw_cells = raw_cells.split("1r34LbKcu7", 1)[1]
+            self.cells = self._parse(_unscramble(raw_cells))
+
+    @classmethod
+    def from_url(cls, url: str) -> "Song":
+        """Build a Song from a full iReal Pro URL (single song only)."""
+        return parse_ireal_song(url)
+
+    # ------------------------------------------------------------------
+    # Static helpers
+    # ------------------------------------------------------------------
 
     @staticmethod
     def parse_title(title: str) -> str:
@@ -207,6 +266,10 @@ class Song:
         if len(parts) == 3:  # [last, spaces, first]
             return parts[2] + parts[1] + parts[0]
         return composer
+
+    # ------------------------------------------------------------------
+    # Parsing internals
+    # ------------------------------------------------------------------
 
     def _parse(self, ireal: str) -> list[Cell]:
         """
@@ -249,13 +312,8 @@ class Song:
                 m = pattern.match(text)
                 if m:
                     found = True
-                    if len(m.groups()) == 0:
-                        arr.append(m.group(0))
-                        text = text[m.end() :]
-                    else:
-                        # a chord
-                        arr.append(m)
-                        text = text[m.end() :]
+                    arr.append(m if m.groups() else m.group(0))
+                    text = text[m.end() :]
                     break
             if not found:
                 # ignore the comma separator
@@ -376,38 +434,57 @@ class Song:
 
 
 class Playlist:
-    def __init__(self, ireal: str):
-        playlist_encoded = re.search(r'.*?(irealb(?:ook)?):\/\/([^"]*)', ireal)
-        if not playlist_encoded:
-            raise ValueError("No iReal Pro URL found in input")
+    """A named collection of songs."""
 
-        encoded_playlist = playlist_encoded.group(2)
-        encoded_parts = re.split(
-            r"===|%3D%3D%3D", encoded_playlist
-        )  # songs are separated by ===
+    def __init__(self, name: str, songs: list[Song], url: str = ""):
+        self.url: str = url
+        self.name: str = name
+        self.songs: list[Song] = songs
 
-        if len(encoded_parts) > 1:
-            self.name = unquote(encoded_parts.pop())  # playlist name
-        else:
-            self.name = ""
+    @classmethod
+    def from_url(cls, url: str) -> "Playlist":
+        """Build a Playlist from a full iReal Pro URL."""
+        return parse_ireal_playlist(url)
 
-        songs: list[Song] = []
-        for encoded_part in encoded_parts:
-            try:
-                scheme = playlist_encoded.group(1)  # 'irealb' or 'irealbook'
-                song = Song(
-                    encoded_part, old_format=(scheme == "irealbook"), scheme=scheme
-                )
 
-            except Exception as error:
-                part = unquote(encoded_part)
-                title = Song.parse_title(part.split("=")[0].strip())
-                print(f"[ireal-parser] [{title}] {error}")
-                song = None
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
-            if song is None:
-                continue
 
-            songs.append(song)
+def parse_ireal_song(url: str) -> Song:
+    """
+    Parse a single-song iReal Pro URL and return a Song.
+    Raises ValueError if the URL encodes more than one song.
+    """
+    scheme, parts = parse_ireal_url(url)
+    if len(parts) != 1:
+        raise ValueError(
+            f"URL contains {len(parts)} songs; use parse_ireal_playlist() instead."
+        )
+    return Song(parts[0], scheme=scheme)
 
-        self.songs = songs
+
+def parse_ireal_playlist(url: str) -> Playlist:
+    """
+    Parse an iReal Pro URL and return a Playlist (one or more songs).
+    Songs that fail to parse are skipped with a warning.
+    """
+    scheme, parts = parse_ireal_url(url)
+
+    # Last segment is the playlist name when there are several songs
+    if len(parts) > 1:
+        playlist_name = unquote(parts.pop())
+    else:
+        playlist_name = ""
+
+    songs: list[Song] = []
+    for part in parts:
+        try:
+            songs.append(Song(part, scheme=scheme))
+        except Exception as exc:
+            title = Song.parse_title(unquote(part).split("=")[0].strip())
+            raise IRealParseError(
+                f"Error during parsing {title}: => {exc}\n{url}\n"
+            ) from exc
+    return Playlist(name=playlist_name, songs=songs, url=url)

@@ -28,49 +28,11 @@ except ImportError:
 
 
 # ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _dedup_key(song: Song) -> str:
-    """
-    Deduplication key for a song: the raw segment string as it appears in
-    the irealb:// URL (i.e. song.encoded_part).
-
-    Two entries are considered identical only when their raw content is
-    exactly the same — same chart, same key, same everything. This is
-    intentionally strict: different arrangements or transcriptions of the
-    same tune will have different raw content and are therefore kept.
-    """
-    return song.encoded_part
-
-
-def _build_song_url(song: "Song") -> str:
-    """
-    Reconstruct the original irealb:// (or irealbook://) URL for a single song.
-
-    The iReal Pro URL format for a single song is:
-        <scheme>://<url-encoded content>
-    where the content (decoded) is:
-        SongSegment===
-
-    The scheme is preserved from the source playlist:
-      - 'irealb'    for the current format
-      - 'irealbook' for the legacy format
-
-    We keep '=' unencoded (it is a field separator within the song segment
-    and is safe in practice) and encode everything else, matching what iReal
-    Pro itself produces.
-    """
-    return f"{song.scheme}://" + song.encoded_part
-
-
-# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 app = typer.Typer(
-    name="ireal-merge",
+    name="ireal-song-extractor",
     help="Merge multiple iReal Pro playlist URLs into one deduplicated playlist.",
     add_completion=False,
 )
@@ -93,6 +55,11 @@ def merge(
         "--verbose",
         "-v",
         help="Print progress details to stderr.",
+    ),
+    capture_failed: bool = typer.Option(
+        False,
+        "--cap-failed",
+        help="Capture failed urls.",
     ),
 ) -> None:
     """
@@ -120,14 +87,16 @@ def merge(
     # 2. Parse every playlist, collect songs with their raw parts
     # ------------------------------------------------------------------
     seen: dict[str, Song] = {}  # dedup key → first-seen Song
+    failed: list[str] = []
     total_raw = 0
 
     for line_no, url in enumerate(lines, start=1):
         try:
-            playlist = Playlist(url)
+            playlist = Playlist.from_url(url)
         except Exception as exc:
+            failed.append(url)
             typer.echo(
-                f"Warning: could not parse line {line_no} ({exc}). Skipping.",
+                f"Warning: could not parse line {line_no} \n{exc}\n",
                 err=True,
             )
             continue
@@ -139,7 +108,7 @@ def merge(
         total_raw += len(playlist.songs)
 
         for song in playlist.songs:
-            key = _dedup_key(song)
+            key = song.encoded_part
             if key not in seen:
                 seen[key] = song
                 log(f"    + {song.title} — {song.composer}")
@@ -149,6 +118,12 @@ def merge(
     if not seen:
         typer.echo("Error: no songs found in input.", err=True)
         raise typer.Exit(1)
+
+    if capture_failed and len(failed) > 0:
+        failed_path = input_file.with_name(
+            f"{input_file.stem}_failed{input_file.suffix}"
+        )
+        failed_path.write_text("\n".join(failed) + "\n", encoding="utf-8")
 
     unique_songs = list(seen.values())
     duplicates_removed = total_raw - len(unique_songs)
@@ -162,7 +137,7 @@ def merge(
     # ------------------------------------------------------------------
     # 3. Write one irealb:// URL per song, one per line
     # ------------------------------------------------------------------
-    lines = [_build_song_url(song) for song in unique_songs]
+    lines = [song.url for song in unique_songs]
     output_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     # ------------------------------------------------------------------

@@ -55,34 +55,21 @@ CSV_FIELDS_BASE = [
 ]
 
 
-def _song_to_row(song: Song, raw_url: str, add_uuid: bool) -> dict:
+def _song_to_row(song: Song) -> dict:
     """Convert a Song object to a CSV row dict."""
-    row: dict = {}
-    if add_uuid:
-        row["id"] = str(uuid.uuid4())
-    row.update(
-        {
-            "url": raw_url,
-            "title": song.title,
-            "composer": song.composer,
-            "style": song.style,
-            "key": song.key,
-            "transpose": song.transpose,
-            "groove": song.groove,
-            "bpm": song.bpm,
-            "repeats": song.repeats,
-        }
-    )
+    row: dict = {
+        "id": str(uuid.uuid4()),
+        "url": song.url,
+        "title": song.title,
+        "composer": song.composer,
+        "style": song.style,
+        "key": song.key,
+        "transpose": song.transpose,
+        "groove": song.groove,
+        "bpm": song.bpm,
+        "repeats": song.repeats,
+    }
     return row
-
-
-def _parse_url(raw_url: str) -> list[Song]:
-    """
-    Parse an irealb:// or irealbook:// URL and return the list of Songs.
-    Raises ValueError if the URL is invalid.
-    """
-    playlist = Playlist(raw_url)
-    return playlist.songs
 
 
 @app.command()
@@ -151,12 +138,12 @@ def main(
 
     for raw_url in track(urls, description="Parsing…", console=console):
         try:
-            songs = _parse_url(raw_url)
-            if not songs:
+            playlist = Playlist.from_url(raw_url)
+            if not playlist.songs:
                 errors.append((raw_url, "No songs found"))
                 continue
-            for song in songs:
-                rows.append(_song_to_row(song, raw_url, add_uuid))
+            for song in playlist.songs:
+                rows.append(_song_to_row(song))
         except Exception as exc:
             errors.append((raw_url, str(exc)))
             if verbose:
