@@ -177,7 +177,7 @@ const buildRow = (chart, { onTitleClick, onComposerClick, onGrooveClick, onStyle
 
     <!-- View (eye icon → future detail page) -->
     <td class="col-view">
-      <a href="view.html?id=${esc(chart.id)}"
+      <a href="view?id=${esc(chart.id)}"
          class="view-btn"
          title="View chart details"
          aria-label="View chart details for ${esc(chart.title)}">
