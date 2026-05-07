@@ -112,16 +112,14 @@ const renderShell = () => {
         </div>
       </section>
 
+      <header class="viewer-titleblock">
+        <h1>${esc(chart.title || state.parsedSong?.title || 'Untitled chart')}</h1>
+        <p>${esc(chart.composer || state.parsedSong?.composer || 'Unknown composer')}</p>
+        <div id="viewer-meta" class="viewer-meta"></div>
+      </header>
+
       <section class="viewer-layout">
         <aside class="viewer-sidebar" aria-label="Chart controls">
-          <div class="viewer-titleblock">
-            <span class="viewer-kicker">Chart Viewer</span>
-            <h1>${esc(chart.title || state.parsedSong?.title || 'Untitled chart')}</h1>
-            <p>${esc(chart.composer || state.parsedSong?.composer || 'Unknown composer')}</p>
-          </div>
-
-          <div id="viewer-meta" class="viewer-meta"></div>
-
           <div class="viewer-controls">
             <div class="control-field">
               <label for="transpose-range">Transpose</label>
