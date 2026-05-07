@@ -602,11 +602,11 @@ input[type="range"] {
 }
 
 .ireal-render-target irr-comment {
-  top: -1.2em;
-  left: 6px;
+  top: 3.2em;
+  left: 10px;
   color: #fff;
   font-family: "HelveticaRegular", Helvetica, Arial, sans-serif;
-  font-size: .48em;
+  font-size: .4em;
   white-space: nowrap;
 }
 
