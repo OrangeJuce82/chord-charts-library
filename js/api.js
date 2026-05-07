@@ -102,9 +102,13 @@ export const fetchCharts = async ({
   // Columns to select
   url.searchParams.set('select', 'id,title,composer,style,key,groove,bpm,url');
 
-  // Title filter (case-insensitive partial match)
+  // Title filter — each word must appear somewhere in the title (AND logic)
+  // e.g. "vie rose" → matches "La Vie en Rose" because both "vie" and "rose" are present
   if (title.trim()) {
-    url.searchParams.set('title', `ilike.*${title.trim()}*`);
+    const titleWords = title.trim().split(/\s+/).filter(Boolean);
+    titleWords.forEach(word => {
+      url.searchParams.append('title', `ilike.*${word}*`);
+    });
   }
 
   // Build OR clauses
@@ -165,40 +169,57 @@ export const fetchCharts = async ({
 /**
  * Fetch autocomplete suggestions for a given column.
  * Splits the query on spaces and requires ALL words to match (AND logic).
+ * Results are deduplicated and sorted by relevance:
+ *   1. Values that start with the query
+ *   2. Values where a word starts with the query
+ *   3. Values that merely contain the query
  * @param {string} column - 'composer' | 'groove' | 'style'
  * @param {string} query  - Partial text entered by the user
  * @param {number} limit  - Max results to return
- * @returns {Promise<string[]>} - Distinct values matching the query
+ * @returns {Promise<string[]>} - Distinct values matching the query, sorted by relevance
  */
 export const fetchSuggestions = async (column, query, limit = 10) => {
   if (!query.trim()) return [];
 
-  const words = query.trim().split(/\s+/).filter(Boolean);
-  const url = new URL(tableUrl());
-  url.searchParams.set('select', column);
+  const q      = query.trim();
+  const words  = q.split(/\s+/).filter(Boolean);
+  const url    = new URL(tableUrl());
 
-  // Apply ilike filter per word (PostgREST AND-s multiple filters on same column)
+  url.searchParams.set('select', column);
+  // PostgREST ANDs multiple filters on the same column
   words.forEach(word => {
     url.searchParams.append(column, `ilike.*${word}*`);
   });
-
   url.searchParams.set('order', `${column}.asc`);
-  url.searchParams.set('limit', String(limit * 3)); // fetch more to dedupe
+  url.searchParams.set('limit', '500'); // large pool for proper dedup + relevance sort
 
   const data = await apiFetch(url.toString());
 
-  // Extract distinct values
-  const seen   = new Set();
-  const result = [];
+  // Deduplicate
+  const seen     = new Set();
+  const distinct = [];
   for (const row of data) {
     const val = row[column];
     if (val && !seen.has(val)) {
       seen.add(val);
-      result.push(val);
-      if (result.length >= limit) break;
+      distinct.push(val);
     }
   }
-  return result;
+
+  // Sort by relevance (case-insensitive)
+  const qLower = q.toLowerCase();
+  const rank = (s) => {
+    const sl = s.toLowerCase();
+    if (sl.startsWith(qLower))                                    return 0; // exact prefix
+    if (sl.split(/[\s,/()+]+/).some(w => w.startsWith(qLower)))  return 1; // a word starts with query
+    return 2;                                                               // contains anywhere
+  };
+  distinct.sort((a, b) => {
+    const diff = rank(a) - rank(b);
+    return diff !== 0 ? diff : a.toLowerCase().localeCompare(b.toLowerCase());
+  });
+
+  return distinct.slice(0, limit);
 };
 
 /**
