@@ -21,34 +21,30 @@ import { PAGE_SIZE, DEBOUNCE_MS }                         from './config.js';
 
 /** @type {{ title: string, composers: string[], grooves: string[], styles: string[], sortCol: string, sortDir: string, page: number }} */
 let state = {
-  title:     '',
-  composers: [],
-  grooves:   [],
-  styles:    [],
-  sortCol:   'title',
-  sortDir:   'asc',
-  page:      0,
+  title:        '',
+  composers:    [],   // confirmed tags
+  composerText: '',   // live typed text (partial search)
+  grooves:      [],
+  styles:       [],
+  sortCol:      'title',
+  sortDir:      'asc',
+  page:         0,
 };
 
 // ─── DOM references ───────────────────────────────────────────────────────────
 
-const totalCountEl  = document.getElementById('total-count');
-const resultsCountEl= document.getElementById('results-count');
-const tbody         = document.getElementById('charts-tbody');
-const table         = document.getElementById('charts-table');
-const paginationEl  = document.getElementById('pagination');
-const titleInput    = document.getElementById('filter-title');
-const btnRandom     = document.getElementById('btn-random');
-const btnReset      = document.getElementById('btn-reset');
+const totalCountEl   = document.getElementById('total-count');
+const resultsCountEl = document.getElementById('results-count');
+const tbody          = document.getElementById('charts-tbody');
+const table          = document.getElementById('charts-table');
+const paginationEl   = document.getElementById('pagination');
+const titleInput     = document.getElementById('filter-title');
+const btnRandom      = document.getElementById('btn-random');
+const btnReset       = document.getElementById('btn-reset');
 
 // ─── Tag inputs ───────────────────────────────────────────────────────────────
 
-/** @type {TagInput} */
-let composerInput;
-/** @type {TagInput} */
-let grooveInput;
-/** @type {TagInput} */
-let styleInput;
+let composerInput, grooveInput, styleInput;
 
 const initTagInputs = () => {
   composerInput = new TagInput({
@@ -58,7 +54,18 @@ const initTagInputs = () => {
     suggestions:   document.getElementById('composer-suggestions'),
     column:        'composer',
     tagClass:      'composer',
-    onChange:      (tags) => { state.composers = tags; state.page = 0; search(); },
+    onInputChange: (text) => {
+      // Live partial text typed — update composerText but keep tags
+      state.composerText = text;
+      state.page = 0;
+      debouncedSearch();
+    },
+    onChange: (tags) => {
+      state.composers    = tags;
+      state.composerText = ''; // tags confirmed, clear free-text
+      state.page         = 0;
+      search();
+    },
   });
 
   grooveInput = new TagInput({
@@ -68,7 +75,7 @@ const initTagInputs = () => {
     suggestions:   document.getElementById('groove-suggestions'),
     column:        'groove',
     tagClass:      'groove',
-    onChange:      (tags) => { state.grooves = tags; state.page = 0; search(); },
+    onChange: (tags) => { state.grooves = tags; state.page = 0; search(); },
   });
 
   styleInput = new TagInput({
@@ -78,7 +85,7 @@ const initTagInputs = () => {
     suggestions:   document.getElementById('style-suggestions'),
     column:        'style',
     tagClass:      'style',
-    onChange:      (tags) => { state.styles = tags; state.page = 0; search(); },
+    onChange: (tags) => { state.styles = tags; state.page = 0; search(); },
   });
 };
 
@@ -94,14 +101,15 @@ const search = async () => {
 
   try {
     const { data, total } = await fetchCharts({
-      title:     state.title,
-      composers: state.composers,
-      grooves:   state.grooves,
-      styles:    state.styles,
-      sortCol:   state.sortCol,
-      sortDir:   state.sortDir,
-      page:      state.page,
-      pageSize:  PAGE_SIZE,
+      title:        state.title,
+      composers:    state.composers,
+      composerText: state.composerText,
+      grooves:      state.grooves,
+      styles:       state.styles,
+      sortCol:      state.sortCol,
+      sortDir:      state.sortDir,
+      page:         state.page,
+      pageSize:     PAGE_SIZE,
     });
 
     resultsCountEl.textContent = `${total.toLocaleString()} result${total !== 1 ? 's' : ''}`;
@@ -151,7 +159,7 @@ const setTitleFilter = (title) => {
  * Reset all filters to their default state.
  */
 const resetFilters = () => {
-  state = { ...state, title: '', composers: [], grooves: [], styles: [], page: 0 };
+  state = { ...state, title: '', composers: [], composerText: '', grooves: [], styles: [], page: 0 };
   titleInput.value = '';
   composerInput.clear();
   grooveInput.clear();

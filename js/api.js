@@ -70,7 +70,9 @@ export const fetchTotalCount = async () => {
 
 /**
  * Fetch a paginated, filtered, sorted list of charts.
- *
+ * Composer/groove/style now support partial (ilike) matching when a raw text
+ * search string is provided via composerText / grooveText / styleText,
+ * in addition to the exact-match tag arrays.
  * @param {object} params
  * @param {string}   [params.title]      - Partial title search (ilike)
  * @param {string[]} [params.composers]  - Exact composer matches (OR)
@@ -84,9 +86,10 @@ export const fetchTotalCount = async () => {
  */
 export const fetchCharts = async ({
   title      = '',
-  composers  = [],
+  composers  = [],   // exact-match tags (from tag chips)
   grooves    = [],
   styles     = [],
+  composerText = '', // free-text partial search (typed but not yet a tag)
   sortCol    = 'title',
   sortDir    = 'asc',
   page       = 0,
@@ -101,19 +104,39 @@ export const fetchCharts = async ({
 
   // Title filter (case-insensitive partial match)
   if (title.trim()) {
-    url.searchParams.set('title', `ilike.*${encodeURIComponent(title.trim())}*`);
+    url.searchParams.set('title', `ilike.*${title.trim()}*`);
   }
 
-  // OR filters for multi-value tag fields
+  // Build OR clauses
+  // For composer: combine exact tags + optional ilike on each word of composerText
+  const composerClauses = [];
+
+  // Exact-match tags selected via autocomplete
+  composers.forEach(v => composerClauses.push(`composer.ilike.*${v}*`));
+
+  // Free-text: split on spaces, every word must appear (AND across words → separate ilike per word)
+  // We handle this by building one ilike per word joined by AND at query level via multiple params
+  // Simplest approach: treat full composerText as one ilike pattern
+  if (composerText.trim()) {
+    const words = composerText.trim().split(/\s+/);
+    words.forEach(w => {
+      if (w) url.searchParams.append('composer', `ilike.*${w}*`);
+    });
+  }
+
+  if (composerClauses.length) {
+    url.searchParams.append('or', `(${composerClauses.join(',')})`);
+  }
+
+  // Groove / style exact tags
   const buildOrFilter = (col, values) => {
     if (!values.length) return;
-    const clause = values.map((v) => `${col}.eq.${v}`).join(',');
+    const clause = values.map((v) => `${col}.ilike.*${v}*`).join(',');
     url.searchParams.append('or', `(${clause})`);
   };
 
-  buildOrFilter('composer', composers);
-  buildOrFilter('groove',   grooves);
-  buildOrFilter('style',    styles);
+  buildOrFilter('groove', grooves);
+  buildOrFilter('style',  styles);
 
   // Sorting
   url.searchParams.set('order', `${sortCol}.${sortDir}`);
@@ -121,8 +144,8 @@ export const fetchCharts = async ({
   const response = await fetch(url.toString(), {
     headers: {
       ...headers(),
-      Prefer:  'count=exact',
-      Range:   `${from}-${to}`,
+      Prefer:       'count=exact',
+      Range:        `${from}-${to}`,
       'Range-Unit': 'items',
     },
   });
@@ -141,7 +164,7 @@ export const fetchCharts = async ({
 
 /**
  * Fetch autocomplete suggestions for a given column.
- *
+ * Splits the query on spaces and requires ALL words to match (AND logic).
  * @param {string} column - 'composer' | 'groove' | 'style'
  * @param {string} query  - Partial text entered by the user
  * @param {number} limit  - Max results to return
@@ -150,11 +173,17 @@ export const fetchCharts = async ({
 export const fetchSuggestions = async (column, query, limit = 10) => {
   if (!query.trim()) return [];
 
+  const words = query.trim().split(/\s+/).filter(Boolean);
   const url = new URL(tableUrl());
   url.searchParams.set('select', column);
-  url.searchParams.set(column,   `ilike.*${encodeURIComponent(query.trim())}*`);
-  url.searchParams.set('order',  `${column}.asc`);
-  url.searchParams.set('limit',  String(limit));
+
+  // Apply ilike filter per word (PostgREST AND-s multiple filters on same column)
+  words.forEach(word => {
+    url.searchParams.append(column, `ilike.*${word}*`);
+  });
+
+  url.searchParams.set('order', `${column}.asc`);
+  url.searchParams.set('limit', String(limit * 3)); // fetch more to dedupe
 
   const data = await apiFetch(url.toString());
 
@@ -166,6 +195,7 @@ export const fetchSuggestions = async (column, query, limit = 10) => {
     if (val && !seen.has(val)) {
       seen.add(val);
       result.push(val);
+      if (result.length >= limit) break;
     }
   }
   return result;
@@ -187,5 +217,14 @@ export const fetchRandomChart = async () => {
   url.searchParams.set('offset', String(offset));
 
   const data = await apiFetch(url.toString());
+  return data?.[0] ?? null;
+};
+
+/**
+ * Fetch a single chart by ID.
+ */
+export const fetchChartById = async (id) => {
+  const url = `${tableUrl()}?id=eq.${encodeURIComponent(id)}&select=*&limit=1`;
+  const data = await apiFetch(url);
   return data?.[0] ?? null;
 };

@@ -1,7 +1,7 @@
 /**
  * @file filters.js
- * @description Tag-input components with autocomplete for composer, groove and style filters.
- * Each component is self-contained and fires a 'filterchange' custom event when tags change.
+ * @description Tag-input components with autocomplete.
+ * Added: onInputChange callback for live partial-text searching.
  */
 
 import { fetchSuggestions } from './api.js';
@@ -38,7 +38,7 @@ export const debounce = (fn, delay) => {
  * @param {Function}    config.onChange      - called with current tags array
  */
 export class TagInput {
-  constructor({ wrapper, tagsContainer, input, suggestions, column, tagClass, onChange }) {
+  constructor({ wrapper, tagsContainer, input, suggestions, column, tagClass, onChange, onInputChange }) {
     this.wrapper       = wrapper;
     this.tagsContainer = tagsContainer;
     this.input         = input;
@@ -46,6 +46,7 @@ export class TagInput {
     this.column        = column;
     this.tagClass      = tagClass;
     this.onChange      = onChange;
+    this.onInputChange = onInputChange || null; // optional: called on every keystroke
 
     /** @type {string[]} */
     this.tags          = [];
@@ -61,6 +62,8 @@ export class TagInput {
     const cleaned = value.trim();
     if (!cleaned || this.tags.includes(cleaned)) return;
     this.tags.push(cleaned);
+    this.input.value = '';
+    if (this.onInputChange) this.onInputChange('');
     this._renderTags();
     this.onChange(this.tags);
   }
@@ -71,6 +74,7 @@ export class TagInput {
     this.input.value = '';
     this._renderTags();
     this._closeSuggestions();
+    if (this.onInputChange) this.onInputChange('');
     this.onChange(this.tags);
   }
 
@@ -89,7 +93,10 @@ export class TagInput {
 
     this.input.addEventListener('input', (e) => {
       this.activeSuggIdx = -1;
-      debouncedFetch(e.target.value);
+      const val = e.target.value;
+      // Fire live search callback for partial text
+      if (this.onInputChange) this.onInputChange(val);
+      debouncedFetch(val);
     });
 
     // Keyboard navigation inside the input
@@ -101,7 +108,6 @@ export class TagInput {
           this._selectSuggestion(active.dataset.value);
         } else if (this.input.value.trim()) {
           this.addTag(this.input.value);
-          this.input.value = '';
           this._closeSuggestions();
         }
         return;
@@ -179,7 +185,6 @@ export class TagInput {
 
   _selectSuggestion(value) {
     this.addTag(value);
-    this.input.value = '';
     this._closeSuggestions();
   }
 
