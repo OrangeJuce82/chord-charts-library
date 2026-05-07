@@ -779,10 +779,10 @@ input[type="range"] {
 .ireal-render-target .No-Chord::before {
   content: "N.C.";
   position: relative;
-  top: -.08em;
+  top: -0.62em;
   display: inline-block;
   font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
-  font-size: .48em;
+  font-size: .4em;
   letter-spacing: .02em;
 }
 
