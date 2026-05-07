@@ -463,7 +463,7 @@ input[type="range"] {
 }
 
 .ireal-render-target irr-chord {
-  position: static;
+  position: relative;
   display: flex;
   align-items: center;
   flex: 1 1 auto;
@@ -472,6 +472,23 @@ input[type="range"] {
   padding: var(--chart-chord-pad-top) var(--chart-chord-pad-inline) 0;
   box-sizing: border-box;
   font-weight: 400;
+}
+
+.ireal-render-target irr-chord > irr-chord {
+  position: absolute;
+  left: calc(7px * var(--chart-scale));
+  top: calc(3px * var(--chart-scale));
+  display: inline-flex;
+  align-items: center;
+  min-height: 0;
+  padding: 0;
+  font-size: .5em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ireal-render-target irr-chord > irr-chord .irr-chord-quality {
+  margin-left: 0;
 }
 
 .ireal-render-target .irr-root-note {
@@ -512,13 +529,17 @@ input[type="range"] {
   align-items: center;
   flex-wrap: nowrap;
   height: 1em;
-  margin-left: -.3em;
+  margin-left: 0;
   font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
   font-size: .46em;
   font-weight: 400;
   line-height: 1;
   white-space: nowrap;
   transform: none;
+}
+
+.ireal-render-target irr-cell.small .irr-chord-quality {
+  margin-left: -.3em;
 }
 
 .ireal-render-target .irr-quality-accidental {
@@ -590,7 +611,7 @@ input[type="range"] {
 }
 
 .ireal-render-target irr-section[class^="irr-section-"] {
-  top: calc(var(--chart-bar-top) - 26px);
+  top: 0;
   left: calc(-15px * var(--chart-scale));
   width: calc(20px * var(--chart-scale));
   min-width: calc(20px * var(--chart-scale));
@@ -615,25 +636,37 @@ input[type="range"] {
 .ireal-render-target .irr-section-v { background-image: url("img/label_v.svg"); }
 
 .ireal-render-target irr-repeat {
-  top: 2px;
-  right: 4px;
-  min-width: 22px;
-  border-top: 1px solid #fff;
-  font-size: .56em;
+  top: calc(-4px * var(--chart-scale));
+  right: calc(-2px * var(--chart-scale));
+  left: calc(-3px * var(--chart-scale));
+  display: flex;
+  width: 200%;
+  align-items: center;
+  min-width: 0;
+  height: calc(28px * var(--chart-scale));
+  padding-left: calc(5px * var(--chart-scale));
+  border-top: calc(2px * var(--chart-scale)) solid #fff;
+  border-left: calc(2px * var(--chart-scale)) solid #fff;
+  font-size: .34em;
   font-family: "MyriadProBold", "Myriad Pro", Arial, sans-serif;
   font-weight: 700;
+  line-height: 1;
+}
+
+.ireal-render-target irr-repeat::after {
+  content: ".";
 }
 
 .ireal-render-target irr-measure {
-  top: calc(18px * var(--chart-scale));
-  left: calc(-33px * var(--chart-scale));
-  transform: scaleX(.85);
+  top: calc(28px * var(--chart-scale));
+  left: calc(-26px * var(--chart-scale));
+  transform: scaleX(.7);
   transform-origin: center center;
-  font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
-  font-size: .72em;
+  font-size: 0.72em;
   font-weight: 400;
   text-align: center;
   line-height: .78;
+  font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
 }
 
 .ireal-render-target irr-measure::after {
@@ -656,6 +689,25 @@ input[type="range"] {
   font-family: "HelveticaRegular", Helvetica, Arial, sans-serif;
   font-size: .36em;
   white-space: nowrap;
+}
+
+.ireal-render-target irr-cell:nth-of-type(16n - 3) irr-comment,
+.ireal-render-target irr-cell:nth-of-type(16n - 2) irr-comment,
+.ireal-render-target irr-cell:nth-of-type(16n - 1) irr-comment,
+.ireal-render-target irr-cell:nth-of-type(16n) irr-comment {
+  right: 0;
+  left: auto;
+  top: 4.6em;
+  display: block;
+  overflow: hidden;
+  text-align: right;
+}
+
+.ireal-render-target irr-annot {
+  font-size: .42em;
+  line-height: 1;
+  position: absolute;
+  left: calc(0.3em * var(--chart-scale));
 }
 
 .ireal-render-target irr-lbar,
@@ -726,17 +778,18 @@ input[type="range"] {
 
 .ireal-render-target .No-Chord::before {
   content: "N.C.";
+  position: relative;
+  top: -0.62em;
+  display: inline-block;
   font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
-}
-
-.ireal-render-target .Root::before {
-  content: "/";
+  font-size: .4em;
+  letter-spacing: .02em;
 }
 
 .ireal-render-target .Repeated-Figure2,
 .ireal-render-target .Repeated-Figure3 {
   position: absolute;
-  left: calc(50% + (4px * var(--chart-scale)));
+  left: calc(80% + (4px * var(--chart-scale)));
   top: calc(var(--chart-bar-top) + (var(--chart-bar-height) / 2));
   display: inline-block;
   background-color: #fff;
@@ -815,7 +868,6 @@ input[type="range"] {
 .ireal-render-target .Fermata::before {
   content: "𝄐";
   font-family: "BravuraRegular", serif;
-  font-size: 1.1em;
 }
 
 .ireal-render-target irr-chords[hilite] irr-section,
@@ -851,33 +903,147 @@ input[type="range"] {
   }
 }
 
+@page {
+  margin: 7mm;
+}
+
 @media print {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .navbar,
   .viewer-topbar,
+  .viewer-titleblock,
   .viewer-sidebar,
   .decoded-panel {
-    display: none;
+    display: none !important;
+  }
+
+  html,
+  body {
+    width: auto;
+    min-height: 0;
+    background: #fff !important;
+    color: #000 !important;
   }
 
   body {
-    background: #fff;
+    margin: 0;
   }
 
   .viewer-shell {
     max-width: none;
+    margin: 0;
     padding: 0;
   }
 
-  .viewer-layout {
+  .viewer-layout,
+  .viewer-stage,
+  .chart-panel {
     display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
   }
 
-  .chart-panel {
-    border: 0;
+  .lead-sheet-paper {
+    --chart-scale: .82;
+    width: 100%;
+    padding: 5mm 4mm 4mm 8mm;
+    overflow: visible;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .lead-sheet-header {
+    min-width: 0;
+    margin-bottom: 10px;
+    color: #000;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .lead-sheet-header h2,
+  .lead-sheet-style,
+  .lead-sheet-composer,
+  .ireal-render-target {
+    color: #000 !important;
   }
 
   .ireal-render-target {
+    width: 100%;
     overflow: visible;
     padding: 0;
+  }
+
+  .ireal-render-target irr-chords {
+    --chart-cell-min-width: 0;
+    width: 100%;
+    min-width: 0;
+    color: #000;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .ireal-render-target irr-cell {
+    min-width: 0;
+  }
+
+  .ireal-render-target irr-over,
+  .ireal-render-target irr-section,
+  .ireal-render-target irr-repeat,
+  .ireal-render-target irr-measure,
+  .ireal-render-target irr-comment,
+  .ireal-render-target irr-annot,
+  .ireal-render-target irr-chords[hilite] irr-section,
+  .ireal-render-target irr-chords[hilite] irr-repeat,
+  .ireal-render-target irr-chords[hilite] irr-comment,
+  .ireal-render-target irr-chords[hilite] irr-annot {
+    color: #000 !important;
+  }
+
+  .ireal-render-target irr-over::before,
+  .ireal-render-target irr-section,
+  .ireal-render-target irr-lbar,
+  .ireal-render-target irr-rbar,
+  .ireal-render-target irr-measure::after,
+  .ireal-render-target .Repeated-Figure2,
+  .ireal-render-target .Repeated-Figure3 {
+    background-color: #000 !important;
+  }
+
+  .ireal-render-target irr-section[class^="irr-section-"],
+  .ireal-render-target irr-chords[hilite] irr-section[class^="irr-section-"] {
+    color: transparent !important;
+    filter: none;
+  }
+
+  .ireal-render-target irr-repeat {
+    border-top-color: #000;
+    border-left-color: #000;
+  }
+
+  .ireal-render-target irr-measure {
+    left: calc(-24px * var(--chart-scale));
+  }
+
+  .ireal-render-target .Left-Repeat-Sign {
+    left: calc(-3px * var(--chart-scale));
+  }
+
+  .ireal-render-target .Right-Repeat-Sign {
+    right: 0;
+  }
+
+  .ireal-render-target .Reverse-Final-Barline {
+    right: calc(-2px * var(--chart-scale));
   }
 }
