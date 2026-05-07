@@ -820,9 +820,16 @@ input[type="range"] {
 
 .ireal-render-target irr-chords[hilite] irr-section,
 .ireal-render-target irr-chords[hilite] irr-repeat,
-.ireal-render-target irr-chords[hilite] irr-comment,
 .ireal-render-target irr-chords[hilite] irr-annot {
   color: #d9361a;
+}
+
+.ireal-render-target irr-chords[hilite] irr-comment {
+  color: var(--c-accent);
+}
+
+.ireal-render-target irr-chords[hilite] irr-section[class^="irr-section-"] {
+  color: transparent;
 }
 
 @media (max-width: 1080px) {
