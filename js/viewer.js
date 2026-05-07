@@ -3,7 +3,7 @@
  * @description Chart detail page controller.
  */
 
-import { fetchChartById } from './api.js';
+import { fetchChartById, fetchRandomChart } from './api.js';
 import {
   esc,
   getIRealSchemeLabel,
@@ -13,6 +13,7 @@ import {
 } from './ireal-chart.js';
 
 const page = document.getElementById('page-container');
+const btnRandomViewer = document.getElementById('btn-random-viewer');
 
 const state = {
   chart: null,
@@ -306,6 +307,23 @@ const bindEvents = () => {
 
 const init = async () => {
   renderLoading();
+
+  btnRandomViewer?.addEventListener('click', async () => {
+    btnRandomViewer.disabled = true;
+    try {
+      const chart = await fetchRandomChart();
+      if (chart?.id) {
+        window.location.href = `view?id=${encodeURIComponent(chart.id)}`;
+      } else {
+        alert('Could not find a random chart. Please try again.');
+      }
+    } catch (error) {
+      console.error('[viewer] random chart error', error);
+      alert('Failed to fetch a random chart.');
+    } finally {
+      btnRandomViewer.disabled = false;
+    }
+  });
 
   const id = new URLSearchParams(window.location.search).get('id');
   if (!id) {
