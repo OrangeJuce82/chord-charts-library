@@ -11,7 +11,7 @@ import { PAGE_SIZE } from './config.js';
 /**
  * Derive the URL scheme badge type.
  * @param {string} url
- * @returns {'irealb'|'irealbook'|'unknown'}
+ * @returns {'irealb'|'irealbook'|'unknown'}\
  */
 const getScheme = (url = '') => {
   if (url.startsWith('irealbook://')) return 'irealbook';
@@ -39,6 +39,74 @@ const esc = (val) => {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 };
+
+// ─── ireal-musicxml lazy loader ─────────────────────────────────────────────
+
+let iReal2MusicXML = null;
+
+/**
+ * Lazy-load the ireal-musicxml library via esm.sh.
+ * @returns {Promise<object>}
+ */
+async function loadIRealLib() {
+  if (iReal2MusicXML) return iReal2MusicXML;
+  const mod = await import('https://esm.sh/ireal-musicxml@2');
+  iReal2MusicXML = mod;
+  return iReal2MusicXML;
+}
+
+/**
+ * Convert an iReal Pro URL to MusicXML and trigger a download.
+ * @param {string} url   - irealb:// or irealbook:// URI
+ * @param {string} title - Song title (used as filename)
+ * @param {HTMLButtonElement} btn
+ */
+async function convertToMusicXML(url, title, btn) {
+  btn.disabled = true;
+  btn.classList.add('musicxml-btn--loading');
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+  try {
+    const lib = await loadIRealLib();
+    const playlist = lib.convertSync ? lib.convertSync(url) : new lib.Playlist(url);
+
+    // Find the first song in the parsed playlist
+    const songs = playlist.songs || [];
+    if (!songs.length) throw new Error('No song found in URI');
+
+    // Generate MusicXML
+    const musicXml = lib.MusicXML
+      ? lib.MusicXML.convert(songs[0])
+      : songs[0].musicXml;
+
+    if (!musicXml) throw new Error('MusicXML generation returned empty result');
+
+    // Download
+    const blob = new Blob([musicXml], { type: 'application/vnd.recordare.musicxml+xml' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `${title.replace(/[/\\?%*:|"<>]/g, '_')}.xml`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    btn.classList.remove('musicxml-btn--loading');
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-file-code"></i> XML';
+    }, 2000);
+  } catch (err) {
+    console.error('[MusicXML]', err);
+    btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+    btn.classList.remove('musicxml-btn--loading');
+    btn.title = `Error: ${err.message}`;
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-file-code"></i> XML';
+      btn.title = 'Download as MusicXML';
+    }, 3000);
+  }
+}
 
 // ─── Table ───────────────────────────────────────────────────────────────────
 
@@ -116,6 +184,15 @@ const buildRow = (chart, { onTitleClick, onComposerClick, onGrooveClick, onStyle
         <i class="fa-regular fa-eye" aria-hidden="true"></i>
       </a>
     </td>
+
+    <!-- MusicXML download -->
+    <td class="col-musicxml">
+      ${chart.url
+        ? `<button class="musicxml-btn js-musicxml" title="Download as MusicXML" aria-label="Download MusicXML for ${esc(chart.title)}">
+             <i class="fa-solid fa-file-code"></i> XML
+           </button>`
+        : '<span style="opacity:.3">—</span>'}
+    </td>
   `;
 
   // Attach click handlers
@@ -123,11 +200,13 @@ const buildRow = (chart, { onTitleClick, onComposerClick, onGrooveClick, onStyle
   const composerBtn = tr.querySelector('.js-composer');
   const grooveBtn   = tr.querySelector('.js-groove');
   const styleBtn    = tr.querySelector('.js-style');
+  const musicxmlBtn = tr.querySelector('.js-musicxml');
 
   if (titleBtn)    titleBtn.addEventListener('click',    () => onTitleClick(chart.title));
   if (composerBtn) composerBtn.addEventListener('click', () => onComposerClick(chart.composer));
   if (grooveBtn)   grooveBtn.addEventListener('click',   () => onGrooveClick(chart.groove));
   if (styleBtn)    styleBtn.addEventListener('click',    () => onStyleClick(chart.style));
+  if (musicxmlBtn) musicxmlBtn.addEventListener('click', () => convertToMusicXML(chart.url, chart.title, musicxmlBtn));
 
   return tr;
 };
@@ -147,7 +226,7 @@ export const renderRows = (tbody, charts, callbacks) => {
   if (!charts.length) {
     const tr = document.createElement('tr');
     tr.className = 'row--empty';
-    tr.innerHTML = '<td colspan="8">No charts found. Try adjusting your filters.</td>';
+    tr.innerHTML = '<td colspan="9">No charts found. Try adjusting your filters.</td>';
     tbody.appendChild(tr);
     return;
   }
@@ -168,7 +247,7 @@ export const renderRows = (tbody, charts, callbacks) => {
 export const showLoading = (tbody) => {
   tbody.innerHTML = `
     <tr class="row--loading">
-      <td colspan="8">
+      <td colspan="9">
         <div class="loader" aria-label="Loading…">
           <span></span><span></span><span></span>
         </div>

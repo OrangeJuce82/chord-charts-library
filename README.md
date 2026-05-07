@@ -13,6 +13,7 @@ A clean, fast static web app to browse free chord charts scraped from the [iReal
 - 📊 **Sortable table** — click any column header
 - 🎲 **Random chart** button — opens a random chart directly in iReal Pro
 - 🎨 **Clickable tags** in the table — click to add to active filters
+- 🎼 **MusicXML export** — convert any chart to MusicXML on the fly and download it
 - 📱 Responsive layout
 
 ---
@@ -23,8 +24,9 @@ A clean, fast static web app to browse free chord charts scraped from the [iReal
 |---|---|
 | UI | Vanilla JS (ES Modules) · HTML5 · CSS3 |
 | Data | [Supabase](https://supabase.com/) (PostgREST API) |
-| Fonts | Syne · DM Mono (Google Fonts) |
+| Fonts | DM Sans · DM Mono (Google Fonts) |
 | Icons | Font Awesome 6 |
+| MusicXML | [ireal-musicxml](https://github.com/infojunkie/ireal-musicxml) (loaded on demand via esm.sh) |
 | Hosting | GitHub Pages |
 
 No build step. No framework. No dependencies to install.
@@ -91,6 +93,20 @@ The site requires no build step — it deploys as-is.
 
 ---
 
+## MusicXML export
+
+Each row in the table has an **XML** button in the rightmost column. Clicking it:
+
+1. Lazy-loads the [`ireal-musicxml`](https://github.com/infojunkie/ireal-musicxml) library from `esm.sh` (only on first use)
+2. Parses the chart's `irealb://` URL client-side — no server involved
+3. Generates a MusicXML lead sheet and triggers a browser download of the `.xml` file
+
+The resulting file can be opened in any MusicXML-compatible application: MuseScore, Sibelius, Finale, OpenSheetMusicDisplay, etc.
+
+> **Note:** conversion quality depends on how well the source chart is encoded. Complex or non-standard charts may produce imperfect results.
+
+---
+
 ## Project structure
 
 ```
@@ -103,7 +119,7 @@ chord-charts-library/
     ├── config.js       # ← Edit this with your Supabase keys
     ├── api.js          # Supabase REST API calls
     ├── filters.js      # TagInput component + debounce utility
-    ├── table.js        # Table & pagination rendering
+    ├── table.js        # Table & pagination rendering + MusicXML conversion
     └── app.js          # Main orchestrator
 ```
 
