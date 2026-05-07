@@ -202,8 +202,8 @@ const bindEvents = () => {
     btnRandom.disabled = true;
     try {
       const chart = await fetchRandomChart();
-      if (chart?.url) {
-        window.location.href = chart.url;
+      if (chart?.id) {
+        window.location.href = `view?id=${encodeURIComponent(chart.id)}`;
       } else {
         alert('Could not find a random chart. Please try again.');
       }
