@@ -294,6 +294,8 @@ input[type="range"] {
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .segmented-option:first-of-type span {
