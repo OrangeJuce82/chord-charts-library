@@ -188,7 +188,14 @@ const renderShell = () => {
               <span>Grid</span>
               <span id="chart-key-label"></span>
             </div>
-            <div id="chart-render-target" class="ireal-render-target"></div>
+            <div class="lead-sheet-paper">
+              <header class="lead-sheet-header">
+                <div id="lead-sheet-style" class="lead-sheet-style"></div>
+                <h2 id="lead-sheet-title"></h2>
+                <div id="lead-sheet-composer" class="lead-sheet-composer"></div>
+              </header>
+              <div id="chart-render-target" class="ireal-render-target"></div>
+            </div>
           </div>
 
           <details id="decoded-panel" class="decoded-panel">
@@ -215,7 +222,8 @@ const updateControls = () => {
 
 const refreshChart = () => {
   const target = document.getElementById('chart-render-target');
-  target.style.setProperty('--chart-scale', `${state.fontScale / 100}`);
+  document.querySelector('.lead-sheet-paper')
+    .style.setProperty('--chart-scale', `${state.fontScale / 100}`);
 
   state.renderedSong = renderIRealSong({
     song: state.parsedSong,
@@ -228,6 +236,12 @@ const refreshChart = () => {
   });
 
   document.getElementById('viewer-meta').innerHTML = makeMetaItems(state.chart, state.renderedSong);
+  document.getElementById('lead-sheet-title').textContent =
+    state.chart.title || state.renderedSong?.title || state.parsedSong?.title || '';
+  document.getElementById('lead-sheet-style').textContent =
+    state.chart.style ? `(${state.chart.style})` : '';
+  document.getElementById('lead-sheet-composer').textContent =
+    state.chart.composer || state.renderedSong?.composer || state.parsedSong?.composer || '';
   document.getElementById('chart-key-label').textContent = state.renderedSong?.key
     ? `Key ${state.renderedSong.key}`
     : '';
@@ -323,4 +337,3 @@ const init = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', init);
-
