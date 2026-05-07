@@ -420,8 +420,17 @@ input[type="range"] {
 
 /* iReal renderer custom elements */
 .ireal-render-target irr-chords {
-  display: grid;
-  grid-template-columns: repeat(16, minmax(42px, 1fr));
+  --chart-cell-width: calc(100% / 16);
+  --chart-cell-min-width: 42px;
+  --chart-cell-height: calc(112px * var(--chart-scale));
+  --chart-chord-height: calc(86px * var(--chart-scale));
+  --chart-chord-pad-top: calc(30px * var(--chart-scale));
+  --chart-chord-pad-inline: calc(8px * var(--chart-scale));
+  --chart-bar-height: calc(77px * var(--chart-scale));
+  --chart-repeat-bar-height: calc(85px * var(--chart-scale));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   min-width: 760px;
   font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
   font-size: calc(68px * var(--chart-scale));
@@ -430,13 +439,19 @@ input[type="range"] {
 
 .ireal-render-target irr-cell {
   position: relative;
-  display: block;
-  min-height: calc(112px * var(--chart-scale));
+  display: flex;
+  flex: 0 0 var(--chart-cell-width);
+  align-items: stretch;
+  min-width: var(--chart-cell-min-width);
+  max-width: var(--chart-cell-width);
+  min-height: var(--chart-cell-height);
+  box-sizing: border-box;
 }
 
 .ireal-render-target irr-spacer {
   display: block;
-  grid-column: 1 / -1;
+  flex: 0 0 100%;
+  width: 100%;
 }
 
 .ireal-render-target irr-cell.small {
@@ -444,11 +459,14 @@ input[type="range"] {
 }
 
 .ireal-render-target irr-chord {
-  position: relative;
+  position: static;
   display: flex;
   align-items: center;
-  min-height: calc(86px * var(--chart-scale));
-  padding: calc(30px * var(--chart-scale)) calc(8px * var(--chart-scale)) 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--chart-chord-height);
+  padding: var(--chart-chord-pad-top) var(--chart-chord-pad-inline) 0;
+  box-sizing: border-box;
   font-weight: 400;
 }
 
@@ -602,11 +620,11 @@ input[type="range"] {
 }
 
 .ireal-render-target irr-comment {
-  top: -1.2em;
-  left: 6px;
+  top: 3.2em;
+  left: 10px;
   color: #fff;
   font-family: "HelveticaRegular", Helvetica, Arial, sans-serif;
-  font-size: .48em;
+  font-size: .4em;
   white-space: nowrap;
 }
 
@@ -616,7 +634,7 @@ input[type="range"] {
   top: auto;
   bottom: calc(1px * var(--chart-scale));
   display: block;
-  height: calc(77px * var(--chart-scale));
+  height: var(--chart-bar-height);
   background-color: #fff;
   background-position: center;
   background-repeat: no-repeat;
@@ -648,7 +666,7 @@ input[type="range"] {
   bottom: calc(-3px * var(--chart-scale));
   left: calc(-5px * var(--chart-scale));
   width: calc(14px * var(--chart-scale));
-  height: calc(85px * var(--chart-scale));
+  height: var(--chart-repeat-bar-height);
   mask: url("img/repeat-bar.svg") center / contain no-repeat;
   -webkit-mask: url("img/repeat-bar.svg") center / contain no-repeat;
 }
@@ -657,7 +675,7 @@ input[type="range"] {
   right: calc(-2px * var(--chart-scale));
   bottom: calc(-4px * var(--chart-scale));
   width: calc(14px * var(--chart-scale));
-  height: calc(85px * var(--chart-scale));
+  height: var(--chart-repeat-bar-height);
   mask: url("img/repeat-bar.svg") center / contain no-repeat;
   -webkit-mask: url("img/repeat-bar.svg") center / contain no-repeat;
   transform: rotate(180deg);
