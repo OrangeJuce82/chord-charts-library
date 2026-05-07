@@ -851,33 +851,146 @@ input[type="range"] {
   }
 }
 
+@page {
+  margin: 7mm;
+}
+
 @media print {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .navbar,
   .viewer-topbar,
+  .viewer-titleblock,
   .viewer-sidebar,
   .decoded-panel {
-    display: none;
+    display: none !important;
+  }
+
+  html,
+  body {
+    width: auto;
+    min-height: 0;
+    background: #fff !important;
+    color: #000 !important;
   }
 
   body {
-    background: #fff;
+    margin: 0;
   }
 
   .viewer-shell {
     max-width: none;
+    margin: 0;
     padding: 0;
   }
 
-  .viewer-layout {
+  .viewer-layout,
+  .viewer-stage,
+  .chart-panel {
     display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
   }
 
-  .chart-panel {
-    border: 0;
+  .lead-sheet-paper {
+    --chart-scale: .82;
+    width: 100%;
+    padding: 5mm 4mm 4mm 8mm;
+    overflow: visible;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .lead-sheet-header {
+    min-width: 0;
+    margin-bottom: 10px;
+    color: #000;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .lead-sheet-header h2,
+  .lead-sheet-style,
+  .lead-sheet-composer,
+  .ireal-render-target {
+    color: #000 !important;
   }
 
   .ireal-render-target {
+    width: 100%;
     overflow: visible;
     padding: 0;
+  }
+
+  .ireal-render-target irr-chords {
+    --chart-cell-min-width: 0;
+    width: 100%;
+    min-width: 0;
+    color: #000;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .ireal-render-target irr-cell {
+    min-width: 0;
+  }
+
+  .ireal-render-target irr-over,
+  .ireal-render-target irr-section,
+  .ireal-render-target irr-repeat,
+  .ireal-render-target irr-measure,
+  .ireal-render-target irr-comment,
+  .ireal-render-target irr-annot,
+  .ireal-render-target irr-chords[hilite] irr-section,
+  .ireal-render-target irr-chords[hilite] irr-repeat,
+  .ireal-render-target irr-chords[hilite] irr-comment,
+  .ireal-render-target irr-chords[hilite] irr-annot {
+    color: #000 !important;
+  }
+
+  .ireal-render-target irr-over::before,
+  .ireal-render-target irr-section,
+  .ireal-render-target irr-lbar,
+  .ireal-render-target irr-rbar,
+  .ireal-render-target irr-measure::after,
+  .ireal-render-target .Repeated-Figure2,
+  .ireal-render-target .Repeated-Figure3 {
+    background-color: #000 !important;
+  }
+
+  .ireal-render-target irr-section[class^="irr-section-"],
+  .ireal-render-target irr-chords[hilite] irr-section[class^="irr-section-"] {
+    color: transparent !important;
+    filter: none;
+  }
+
+  .ireal-render-target irr-repeat {
+    border-top-color: #000;
+  }
+
+  .ireal-render-target irr-measure {
+    left: calc(-24px * var(--chart-scale));
+  }
+
+  .ireal-render-target .Left-Repeat-Sign {
+    left: calc(-3px * var(--chart-scale));
+  }
+
+  .ireal-render-target .Right-Repeat-Sign {
+    right: 0;
+  }
+
+  .ireal-render-target .Reverse-Final-Barline {
+    right: calc(-2px * var(--chart-scale));
   }
 }
