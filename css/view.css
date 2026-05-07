@@ -2,6 +2,46 @@
  * Viewer-specific layout and iReal renderer styling.
  */
 
+@font-face {
+  font-family: "HelveticaRegular";
+  src: url("fonts/Helvetica/HelveticaRegular/HelveticaRegular.woff") format("woff");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HelveticaBold";
+  src: url("fonts/Helvetica/HelveticaBold/HelveticaBold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyriadProRegular";
+  src: url("fonts/MyriadPro/MyriadProRegular/MyriadProRegular.woff") format("woff");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyriadProBold";
+  src: url("fonts/MyriadPro/MyriadProBold/MyriadProBold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BravuraRegular";
+  src: url("fonts/Bravura/Bravura.woff") format("woff");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 .viewer-shell {
   max-width: 1500px;
   margin: 0 auto;
@@ -295,12 +335,13 @@ input[type="range"] {
   align-items: end;
   min-width: 760px;
   margin-bottom: 18px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "HelveticaRegular", Helvetica, Arial, sans-serif;
 }
 
 .lead-sheet-header h2 {
+  transform: translateY(-6px);
   color: #fff;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "HelveticaBold", Helvetica, Arial, sans-serif;
   font-size: calc(28px * var(--chart-scale));
   font-weight: 700;
   line-height: 1;
@@ -310,7 +351,7 @@ input[type="range"] {
 .lead-sheet-style,
 .lead-sheet-composer {
   color: #fff;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "HelveticaRegular", Helvetica, Arial, sans-serif;
   font-size: calc(26px * var(--chart-scale));
   line-height: 1;
 }
@@ -370,8 +411,8 @@ input[type="range"] {
   display: grid;
   grid-template-columns: repeat(16, minmax(42px, 1fr));
   min-width: 760px;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: calc(44px * var(--chart-scale));
+  font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
+  font-size: calc(68px * var(--chart-scale));
   line-height: 1;
 }
 
@@ -395,33 +436,75 @@ input[type="range"] {
   display: flex;
   align-items: center;
   min-height: calc(86px * var(--chart-scale));
-  padding: calc(18px * var(--chart-scale)) calc(8px * var(--chart-scale)) 0;
-  font-weight: 700;
+  padding: calc(30px * var(--chart-scale)) calc(8px * var(--chart-scale)) 0;
+  font-weight: 400;
 }
 
-.ireal-render-target irr-chord sub {
-  align-self: center;
-  margin-left: .02em;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: .48em;
-  font-weight: 700;
+.ireal-render-target .irr-root-note {
+  display: inline-block;
+  font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
+  font-size: 1em;
+  font-weight: 400;
   line-height: 1;
+  transform: scaleX(.75);
+  transform-origin: left center;
 }
 
-.ireal-render-target irr-chord sup {
-  margin-left: .02em;
-  font-size: .58em;
+.ireal-render-target .irr-root-B {
+  transform: scaleX(.88);
+}
+
+.ireal-render-target .irr-root-E,
+.ireal-render-target .irr-root-F {
+  transform: scaleX(.95);
+}
+
+.ireal-render-target .irr-root-accidental {
+  position: relative;
+  display: inline-block;
+  top: -.42em;
+  left: -.13em;
+  margin-right: -.18em;
+  font-family: "BravuraRegular", serif;
+  font-size: .9em;
   line-height: 1;
+  transform: none;
+}
+
+.ireal-render-target .irr-chord-quality {
+  position: relative;
+  top: .2em;
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  margin-left: .02em;
+  font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
+  font-size: .46em;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  transform: none;
+}
+
+.ireal-render-target .irr-quality-accidental {
+  position: relative;
+  top: .12em;
+  display: inline-block;
+  margin: 0 -.03em 0 .02em;
+  font-family: "BravuraRegular", serif;
+  font-size: 1.3em;
+  line-height: 1;
+  vertical-align: baseline;
 }
 
 .ireal-render-target irr-over {
   position: absolute;
-  left: calc(34px * var(--chart-scale));
-  top: calc(58px * var(--chart-scale));
+  left: calc(38px * var(--chart-scale));
+  top: calc(82px * var(--chart-scale));
   display: inline-flex;
   align-items: baseline;
   color: #fff;
-  font-size: .58em;
+  font-size: .62em;
   line-height: 1;
 }
 
@@ -441,18 +524,35 @@ input[type="range"] {
 }
 
 .ireal-render-target irr-section {
-  top: calc(-7px * var(--chart-scale));
-  left: calc(-22px * var(--chart-scale));
-  min-width: calc(28px * var(--chart-scale));
-  min-height: calc(28px * var(--chart-scale));
-  border: calc(2px * var(--chart-scale)) solid #fff;
+  top: calc(-14px * var(--chart-scale));
+  left: calc(-18px * var(--chart-scale));
+  min-width: calc(19px * var(--chart-scale));
+  min-height: calc(21px * var(--chart-scale));
   background: #fff;
   color: #000;
-  font-size: .48em;
-  font-weight: 800;
+  font-family: "MyriadProBold", "Myriad Pro", Arial, sans-serif;
+  font-size: .46em;
+  font-weight: 700;
   line-height: 1;
   text-align: center;
 }
+
+.ireal-render-target irr-section[class^="irr-section-"] {
+  overflow: hidden;
+  color: transparent;
+  background-color: #fff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: invert(1);
+}
+
+.ireal-render-target .irr-section-A { background-image: url("img/label_A.svg"); }
+.ireal-render-target .irr-section-B { background-image: url("img/label_B.svg"); }
+.ireal-render-target .irr-section-C { background-image: url("img/label_C.svg"); }
+.ireal-render-target .irr-section-D { background-image: url("img/label_D.svg"); }
+.ireal-render-target .irr-section-i { background-image: url("img/label_i.svg"); }
+.ireal-render-target .irr-section-v { background-image: url("img/label_v.svg"); }
 
 .ireal-render-target irr-repeat {
   top: 2px;
@@ -460,24 +560,40 @@ input[type="range"] {
   min-width: 22px;
   border-top: 1px solid #fff;
   font-size: .56em;
-  font-weight: 800;
+  font-family: "MyriadProBold", "Myriad Pro", Arial, sans-serif;
+  font-weight: 700;
 }
 
 .ireal-render-target irr-measure {
   top: calc(18px * var(--chart-scale));
-  left: calc(-24px * var(--chart-scale));
-  transform: none;
+  left: calc(-33px * var(--chart-scale));
+  transform: scaleX(.85);
+  transform-origin: center center;
+  font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
   font-size: .72em;
-  font-weight: 800;
+  font-weight: 400;
   text-align: center;
   line-height: .78;
+}
+
+.ireal-render-target irr-measure::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(19px * var(--chart-scale));
+  height: calc(3px * var(--chart-scale));
+  background-color: #fff;
+  mask: url("img/signature_bar.svg") center / contain no-repeat;
+  -webkit-mask: url("img/signature_bar.svg") center / contain no-repeat;
+  transform: translate(-50%, -50%);
 }
 
 .ireal-render-target irr-comment {
   top: -1.2em;
   left: 6px;
   color: #fff;
-  font-family: var(--font-mono);
+  font-family: "HelveticaRegular", Helvetica, Arial, sans-serif;
   font-size: .48em;
   white-space: nowrap;
 }
@@ -485,80 +601,111 @@ input[type="range"] {
 .ireal-render-target irr-lbar,
 .ireal-render-target irr-rbar {
   position: absolute;
-  top: 0;
-  bottom: -1px;
-  width: 0;
+  top: auto;
+  bottom: calc(1px * var(--chart-scale));
+  display: block;
+  height: calc(77px * var(--chart-scale));
+  background-color: #fff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
   pointer-events: none;
 }
 
 .ireal-render-target irr-lbar {
-  left: -1px;
+  left: calc(-3px * var(--chart-scale));
 }
 
 .ireal-render-target irr-rbar {
-  right: -1px;
+  right: calc(1px * var(--chart-scale));
 }
 
 .ireal-render-target .Single-Barline {
-  border-left: calc(3px * var(--chart-scale)) solid #fff;
+  width: calc(2px * var(--chart-scale));
+  mask: url("img/single-bar.svg") center / contain no-repeat;
+  -webkit-mask: url("img/single-bar.svg") center / contain no-repeat;
 }
 
 .ireal-render-target .Double-Barline {
-  border-left: calc(5px * var(--chart-scale)) double #fff;
+  width: calc(7px * var(--chart-scale));
+  mask: url("img/double-bar.svg") center / contain no-repeat;
+  -webkit-mask: url("img/double-bar.svg") center / contain no-repeat;
 }
 
 .ireal-render-target .Left-Repeat-Sign {
-  border-left: calc(7px * var(--chart-scale)) double #fff;
-}
-
-.ireal-render-target .Left-Repeat-Sign::after,
-.ireal-render-target .Right-Repeat-Sign::after {
-  content: ":";
-  position: absolute;
-  top: 50%;
-  color: #fff;
-  font-weight: 800;
-  transform: translateY(-50%);
-}
-
-.ireal-render-target .Left-Repeat-Sign::after {
-  left: 4px;
+  bottom: calc(-3px * var(--chart-scale));
+  left: calc(-5px * var(--chart-scale));
+  width: calc(14px * var(--chart-scale));
+  height: calc(85px * var(--chart-scale));
+  mask: url("img/repeat-bar.svg") center / contain no-repeat;
+  -webkit-mask: url("img/repeat-bar.svg") center / contain no-repeat;
 }
 
 .ireal-render-target .Right-Repeat-Sign {
-  border-left: calc(7px * var(--chart-scale)) double #fff;
-}
-
-.ireal-render-target .Right-Repeat-Sign::after {
-  right: 4px;
+  right: calc(-2px * var(--chart-scale));
+  bottom: calc(-4px * var(--chart-scale));
+  width: calc(14px * var(--chart-scale));
+  height: calc(85px * var(--chart-scale));
+  mask: url("img/repeat-bar.svg") center / contain no-repeat;
+  -webkit-mask: url("img/repeat-bar.svg") center / contain no-repeat;
+  transform: rotate(180deg);
 }
 
 .ireal-render-target .Reverse-Final-Barline {
-  border-left: calc(7px * var(--chart-scale)) double #fff;
+  right: calc(-5px * var(--chart-scale));
+  width: calc(10px * var(--chart-scale));
+  mask: url("img/final-bar.svg") center / contain no-repeat;
+  -webkit-mask: url("img/final-bar.svg") center / contain no-repeat;
 }
 
 .ireal-render-target irr-char::before {
-  font-family: var(--font-display);
+  font-family: "BravuraRegular", serif;
 }
 
 .ireal-render-target .No-Chord::before {
   content: "N.C.";
+  font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
 }
 
 .ireal-render-target .Root::before {
   content: "/";
 }
 
+.ireal-render-target .Repeated-Figure2,
+.ireal-render-target .Repeated-Figure3 {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: inline-block;
+  background-color: #fff;
+  color: transparent;
+  transform: translate(-50%, -50%);
+}
+
 .ireal-render-target .Repeated-Figure1::before {
   content: "/";
 }
 
+.ireal-render-target .Repeated-Figure2 {
+  width: calc(46px * var(--chart-scale));
+  height: calc(37px * var(--chart-scale));
+  mask: url("img/root-x.svg") center / contain no-repeat;
+  -webkit-mask: url("img/root-x.svg") center / contain no-repeat;
+}
+
 .ireal-render-target .Repeated-Figure2::before {
-  content: "\2044\00B7";
+  content: "";
+}
+
+.ireal-render-target .Repeated-Figure3 {
+  width: calc(48px * var(--chart-scale));
+  height: calc(37px * var(--chart-scale));
+  mask: url("img/root-r.svg") center / contain no-repeat;
+  -webkit-mask: url("img/root-r.svg") center / contain no-repeat;
 }
 
 .ireal-render-target .Repeated-Figure3::before {
-  content: "%%";
+  content: "";
 }
 
 .ireal-render-target .Measure-0-Low::before,
@@ -588,18 +735,25 @@ input[type="range"] {
 .ireal-render-target .Measure-12-Low::before,
 .ireal-render-target .Measure-12-High::before { content: "12"; }
 
+.ireal-render-target .Measure-4-High {
+  position: relative;
+  top: calc(6px * var(--chart-scale));
+}
+
 .ireal-render-target .Segno::before {
-  content: "S";
+  content: "𝄋";
+  font-family: "BravuraRegular", serif;
 }
 
 .ireal-render-target .Coda::before {
-  content: "O";
+  content: "𝄌";
+  font-family: "BravuraRegular", serif;
 }
 
 .ireal-render-target .Fermata::before {
-  content: "fermata";
-  font-family: var(--font-mono);
-  font-size: .68em;
+  content: "𝄐";
+  font-family: "BravuraRegular", serif;
+  font-size: 1.1em;
 }
 
 .ireal-render-target irr-chords[hilite] irr-section,

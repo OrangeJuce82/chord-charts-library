@@ -354,6 +354,7 @@ class iRealRenderer {
 	
 	baseChordHtml(chord) {
 		var { note, modifiers } = chord;
+		var rootClass = "";
 		if (note === "W")
 			note = `<irr-char class="irr-root Root"></irr-char>`;
 		if (note === "p")
@@ -364,11 +365,20 @@ class iRealRenderer {
 		}
 		var sup = "";
 		switch(note[1]) {
-			case 'b': sup = "<sup>\u266d</sup>"; note = note[0]; break;
-			case '#': sup = "<sup>\u266f</sup>"; note = note[0]; break;
+			case 'b': sup = "<span class=\"irr-root-accidental\">\u266d</span>"; note = note[0]; break;
+			case '#': sup = "<span class=\"irr-root-accidental\">\u266f</span>"; note = note[0]; break;
 		}
-		if (modifiers)
-			modifiers = `<sub>${modifiers.replace("^", "\u25B3").replace("h", "\u00D8")}</sub>`;
+		if (/^[A-GH]$/.test(note)) {
+			rootClass = ` irr-root-${note}`;
+			note = `<span class="irr-root-note${rootClass}">${note}</span>`;
+		}
+		if (modifiers) {
+			modifiers = modifiers
+				.replace("^", "\u25B3")
+				.replace("h", "\u00D8")
+				.replace(/([\u266d\u266f])/g, "<span class=\"irr-quality-accidental\">$1</span>");
+			modifiers = `<span class="irr-chord-quality">${modifiers}</span>`;
+		}
 		return `${note}${sup}${modifiers}`;
 	}
 	
@@ -388,7 +398,7 @@ class iRealRenderer {
 					switch(s) {
 						case "i": s = "In"; break;
 					}
-					t += `<irr-section>${s}</irr-section>`;
+					t += `<irr-section class="irr-section-${annot[1]}">${s}</irr-section>`;
 					break;
 				case 'N':	// repeat bracket
 					t += `<irr-repeat>${annot[1]}</irr-repeat>`; break;
