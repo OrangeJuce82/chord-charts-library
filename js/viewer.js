@@ -183,15 +183,13 @@ const renderShell = () => {
 
         <section class="viewer-stage" aria-label="Rendered chord chart">
           <div class="chart-panel">
-            <div class="chart-panel__header">
-              <span>Grid</span>
-              <span id="chart-key-label"></span>
-            </div>
             <div class="lead-sheet-paper">
               <header class="lead-sheet-header">
-                <div id="lead-sheet-style" class="lead-sheet-style"></div>
                 <h2 id="lead-sheet-title"></h2>
-                <div id="lead-sheet-composer" class="lead-sheet-composer"></div>
+                <div class="lead-sheet-subhead">
+                  <div id="lead-sheet-style" class="lead-sheet-style"></div>
+                  <div id="lead-sheet-composer" class="lead-sheet-composer"></div>
+                </div>
               </header>
               <div id="chart-render-target" class="ireal-render-target"></div>
             </div>
@@ -241,9 +239,6 @@ const refreshChart = () => {
     state.chart.style ? `(${state.chart.style})` : '';
   document.getElementById('lead-sheet-composer').textContent =
     state.chart.composer || state.renderedSong?.composer || state.parsedSong?.composer || '';
-  document.getElementById('chart-key-label').textContent = state.renderedSong?.key
-    ? `Key ${state.renderedSong.key}`
-    : '';
   document.getElementById('decoded-panel').open = state.showDecoded;
   document.getElementById('decoded-output').textContent = state.parsedSong?.music || '';
   updateControls();

@@ -315,8 +315,9 @@ class iRealRenderer {
 	// Private methods
 	
 	cellHtml(data) {
-		let html = "";
-		if (data.chord) html = this.chordHtml(data.chord);
+		let chordHtml = data.chord ? `<irr-chord>${this.chordHtml(data.chord)}</irr-chord>` : "";
+		let leftBarHtml = "";
+		let rightBarHtml = "";
 		for (var i = 0; i < data.bars.length; i++) {
 			let c = data.bars[i];
 			let cls = iRealRenderer.classes[c];
@@ -324,17 +325,15 @@ class iRealRenderer {
 				case '(':
 				case '[':
 				case '{':
-					html = `<irr-lbar class="${cls}"></irr-lbar>` + html; break;
+					leftBarHtml += `<irr-lbar class="${cls}"></irr-lbar>`; break;
 				//case ')':	// not handled here, only at end of line below
 				case ']':
 				case '}':
 				case 'Z':
-					html = `<irr-rbar class="${cls}"></irr-rbar>` + html; break;
+					rightBarHtml += `<irr-rbar class="${cls}"></irr-rbar>`; break;
 			}
 		}
-		if (!html)
-			return html;
-		return `<irr-chord>${html}</irr-chord>`;
+		return `${leftBarHtml}${chordHtml}${rightBarHtml}`;
 	}
 		
 	chordHtml(chord) {
