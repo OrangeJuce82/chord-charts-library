@@ -777,7 +777,7 @@ input[type="range"] {
 .ireal-render-target .Repeated-Figure2,
 .ireal-render-target .Repeated-Figure3 {
   position: absolute;
-  left: calc(50% + (4px * var(--chart-scale)));
+  left: calc(80% + (4px * var(--chart-scale)));
   top: calc(var(--chart-bar-top) + (var(--chart-bar-height) / 2));
   display: inline-block;
   background-color: #fff;
