@@ -374,7 +374,7 @@ class iRealRenderer {
 		if (modifiers) {
 			modifiers = modifiers
 				.replace(/-/g, "\u2013")
-				.replace("^", "\u25B3")
+				.replace("^", "\u2206")
 				.replace("h", "\u00D8")
 				.replace(/([\u266d\u266f])/g, "<span class=\"irr-quality-accidental\">$1</span>");
 			modifiers = `<span class="irr-chord-quality">${modifiers}</span>`;
