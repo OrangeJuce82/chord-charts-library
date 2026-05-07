@@ -529,13 +529,17 @@ input[type="range"] {
   align-items: center;
   flex-wrap: nowrap;
   height: 1em;
-  margin-left: -.3em;
+  margin-left: 0;
   font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
   font-size: .46em;
   font-weight: 400;
   line-height: 1;
   white-space: nowrap;
   transform: none;
+}
+
+.ireal-render-target irr-cell.small .irr-chord-quality {
+  margin-left: -.3em;
 }
 
 .ireal-render-target .irr-quality-accidental {
@@ -632,13 +636,25 @@ input[type="range"] {
 .ireal-render-target .irr-section-v { background-image: url("img/label_v.svg"); }
 
 .ireal-render-target irr-repeat {
-  top: 2px;
-  right: 4px;
-  min-width: 22px;
-  border-top: 1px solid #fff;
-  font-size: .56em;
+  top: calc(-4px * var(--chart-scale));
+  right: calc(-2px * var(--chart-scale));
+  left: calc(-3px * var(--chart-scale));
+  display: flex;
+  width: 200%;
+  align-items: center;
+  min-width: 0;
+  height: calc(28px * var(--chart-scale));
+  padding-left: calc(5px * var(--chart-scale));
+  border-top: calc(2px * var(--chart-scale)) solid #fff;
+  border-left: calc(2px * var(--chart-scale)) solid #fff;
+  font-size: .34em;
   font-family: "MyriadProBold", "Myriad Pro", Arial, sans-serif;
   font-weight: 700;
+  line-height: 1;
+}
+
+.ireal-render-target irr-repeat::after {
+  content: ".";
 }
 
 .ireal-render-target irr-measure {
@@ -768,10 +784,6 @@ input[type="range"] {
   font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
   font-size: .48em;
   letter-spacing: .02em;
-}
-
-.ireal-render-target .Root::before {
-  content: "/";
 }
 
 .ireal-render-target .Repeated-Figure2,
@@ -1016,6 +1028,7 @@ input[type="range"] {
 
   .ireal-render-target irr-repeat {
     border-top-color: #000;
+    border-left-color: #000;
   }
 
   .ireal-render-target irr-measure {
