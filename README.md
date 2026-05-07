@@ -2,7 +2,7 @@
 
 A clean, fast static web app to browse free chord charts scraped from the [iReal Pro community forum](https://forums.irealpro.com/).
 
-**Live demo →** `https://OrangeJuce82.github.io/chord-charts-library/`
+**🚀 Live demo →** <https://OrangeJuce82.github.io/chord-charts-library/>
 
 ---
 
@@ -111,6 +111,6 @@ chord-charts-library/
 
 ## License
 
-MIT — do whatever you want, attribution appreciated.
+[MIT](LICENSE) — do whatever you want, attribution appreciated.
 
 Charts belong to their respective authors on the iReal Pro forum.
