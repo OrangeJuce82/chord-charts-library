@@ -86,7 +86,7 @@ npx serve .
 Then open `http://localhost:8080`.
 
 ### 5. Deploy to GitHub Pages
-
+ 
 Push to your repo and enable **GitHub Pages** from `Settings → Pages → Source: main branch / root`.
 
 The site requires no build step — it deploys as-is.

@@ -11,74 +11,424 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    .detail-card {
-      max-width: 640px;
-      margin: 48px auto;
-      background: var(--c-surface);
-      border: 1px solid var(--c-border);
-      border-radius: var(--radius-lg);
-      padding: 40px;
+    /* ── Detail layout ─────────────────────────────────────────── */
+    .detail-wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px clamp(16px, 4vw, 48px) 80px;
     }
-    .detail-card h1 {
-      font-family: var(--font-display);
-      font-size: 28px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    .detail-card .meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-top: 24px;
-    }
-    .detail-card .meta-item label {
-      display: block;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      color: var(--c-text-muted);
-      margin-bottom: 4px;
-    }
-    .detail-card .meta-item span {
-      font-size: 14px;
-      color: var(--c-text);
-    }
-    .detail-card .open-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 32px;
-      padding: 10px 24px;
-      background: var(--c-accent);
-      color: #0e0d0b;
-      border-radius: var(--radius-md);
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 14px;
-      text-decoration: none;
-      transition: opacity var(--transition);
-    }
-    .detail-card .open-btn:hover { opacity: .85; }
+
     .back-link {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin: 24px 48px;
+      margin-bottom: 28px;
       color: var(--c-text-muted);
       font-size: 12px;
       text-decoration: none;
     }
     .back-link:hover { color: var(--c-accent); opacity: 1; }
-    .wip-badge {
-      display: inline-block;
-      margin-top: 16px;
-      padding: 4px 10px;
-      background: rgba(232,149,42,.15);
-      border: 1px solid rgba(232,149,42,.3);
-      border-radius: var(--radius-pill);
-      color: var(--c-accent);
-      font-size: 11px;
+
+    /* ── Header card ───────────────────────────────────────────── */
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
     }
+
+    .chart-header__main h1 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: var(--c-text);
+    }
+
+    .chart-header__main .composer {
+      font-size: 13px;
+      color: var(--c-text-muted);
+    }
+
+    /* ── Meta pills row ────────────────────────────────────────── */
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--c-surface-2);
+      border: 1px solid var(--c-border);
+      font-size: 11px;
+      color: var(--c-text-muted);
+    }
+    .meta-pill strong { color: var(--c-text); font-weight: 500; }
+    .meta-pill--key { border-color: var(--c-accent-dim); color: var(--c-accent); }
+    .meta-pill--key strong { color: var(--c-accent); }
+
+    /* ── Open button ───────────────────────────────────────────── */
+    .open-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      background: var(--c-accent);
+      color: #0e0d0b;
+      border-radius: var(--radius-md);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: opacity var(--transition);
+    }
+    .open-btn:hover { opacity: .85; }
+
+    .open-btn--irealbook {
+      background: var(--c-irealbook);
+    }
+
+    /* ── Renderer Controls Panel ───────────────────────────────── */
+    .controls-panel {
+      background: var(--c-surface-2, #1a1a1a);
+      border: 1px solid var(--c-border, #333);
+      border-radius: var(--radius-lg, 10px);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 120px;
+    }
+
+    .control-group label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--c-text-muted, #888);
+      font-family: var(--font-display, 'Syne', sans-serif);
+      font-weight: 600;
+    }
+
+    .control-group .control-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Stepper (transpose / font size) */
+    .stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--c-border, #333);
+      border-radius: var(--radius-md, 6px);
+      overflow: hidden;
+    }
+
+    .stepper button {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--c-surface, #111);
+      color: var(--c-text, #eee);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s;
+      font-family: var(--font-display, 'Syne', sans-serif);
+    }
+    .stepper button:hover { background: var(--c-surface-2, #1a1a1a); }
+    .stepper button:active { background: var(--c-accent-dim, #555); }
+
+    .stepper .stepper-val {
+      min-width: 38px;
+      text-align: center;
+      font-size: 13px;
+      font-family: var(--font-display, 'Syne', sans-serif);
+      font-weight: 600;
+      color: var(--c-text, #eee);
+      padding: 0 4px;
+      background: var(--c-surface, #111);
+      border-left: 1px solid var(--c-border, #333);
+      border-right: 1px solid var(--c-border, #333);
+      height: 28px;
+      line-height: 28px;
+      user-select: none;
+    }
+
+    /* Radio button group */
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--c-text-muted, #888);
+      transition: color .15s;
+    }
+    .radio-option:hover { color: var(--c-text, #eee); }
+    .radio-option input[type="radio"] {
+      accent-color: var(--c-accent, #d4a851);
+      width: 13px;
+      height: 13px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .radio-option.selected { color: var(--c-accent, #d4a851); }
+
+    /* Toggle (checkbox) */
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--c-text-muted, #888);
+      transition: color .15s;
+    }
+    .toggle-label:hover { color: var(--c-text, #eee); }
+
+    .toggle-switch {
+      position: relative;
+      width: 32px;
+      height: 17px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--c-border, #333);
+      border-radius: 17px;
+      transition: background .2s;
+    }
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 13px;
+      height: 13px;
+      background: var(--c-text-muted, #888);
+      border-radius: 50%;
+      transition: left .2s, background .2s;
+    }
+    .toggle-switch input:checked ~ .toggle-track { background: var(--c-accent, #d4a851); }
+    .toggle-switch input:checked ~ .toggle-track .toggle-thumb {
+      left: 17px;
+      background: #0e0d0b;
+    }
+
+    .controls-divider {
+      width: 1px;
+      background: var(--c-border, #333);
+      align-self: stretch;
+      margin: 0 4px;
+    }
+
+    /* ── Chart renderer area ───────────────────────────────────── */
+    .chart-area {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .chart-area__label {
+      padding: 12px 20px;
+      background: var(--c-surface-2);
+      border-bottom: 1px solid var(--c-border);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--c-text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chart-area__label .parse-error {
+      color: #e84c3d;
+      font-size: 11px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    /* ── Lead-sheet grid ───────────────────────────────────────── */
+    .chart-grid {
+      padding: 24px 20px;
+      overflow-x: auto;
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-left: 1px solid var(--c-border-2);
+      margin-bottom: 0;
+    }
+    .chart-row + .chart-row {
+      border-top: none;
+    }
+
+    /* ── Measure cell ──────────────────────────────────────────── */
+    .measure {
+      border-top:    1px solid var(--c-border-2);
+      border-right:  1px solid var(--c-border-2);
+      border-bottom: 1px solid var(--c-border-2);
+      min-height: 64px;
+      padding: 8px 10px 6px;
+      position: relative;
+    }
+
+    .measure__section {
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      font-size: 9px;
+      font-style: italic;
+      color: var(--c-accent);
+      line-height: 1;
+    }
+
+    .measure__chords {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 100%;
+      padding-top: 14px;
+      flex-wrap: nowrap;
+    }
+
+    .chord-slot {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    /* Root note — font-size controlled by JS via CSS var */
+    .chord-root {
+      font-family: var(--font-display);
+      font-size: var(--chord-font-size, 16px);
+      font-weight: 700;
+      color: var(--c-text);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .chord-mod {
+      font-family: var(--font-mono);
+      font-size: calc(var(--chord-font-size, 16px) * 0.56);
+      color: var(--c-text-muted);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .chord-over {
+      font-family: var(--font-display);
+      font-size: calc(var(--chord-font-size, 16px) * 0.69);
+      color: var(--c-accent-dim);
+      margin-top: 1px;
+      white-space: nowrap;
+    }
+
+    .chord-symbol {
+      font-family: var(--font-display);
+      font-size: calc(var(--chord-font-size, 16px) * 1.25);
+      font-weight: 700;
+      color: var(--c-text-dim);
+      line-height: 1;
+    }
+
+    /* ── Repeat bar decoration ─────────────────────────────────── */
+    .measure--repeat-open  { border-left: 3px solid var(--c-accent-dim); }
+    .measure--repeat-close { border-right: 3px solid var(--c-accent-dim); }
+    .measure--double-open  { border-left: 3px double var(--c-border-2); }
+    .measure--double-close { border-right: 3px double var(--c-border-2); }
+    .measure--final        { border-right: 4px solid var(--c-text); }
+
+    /* ── Repeat volta badge ────────────────────────────────────── */
+    .measure__volta {
+      position: absolute;
+      top: 3px;
+      right: 6px;
+      font-size: 9px;
+      font-weight: 700;
+      font-family: var(--font-display);
+      color: var(--c-text-muted);
+      border-bottom: 1px solid var(--c-border-2);
+      padding-bottom: 1px;
+    }
+
+    /* ── Time-sig badge ────────────────────────────────────────── */
+    .measure__timesig {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--c-text-muted);
+      letter-spacing: .04em;
+    }
+
+    /* ── Empty / "no-chart" state ──────────────────────────────── */
+    .chart-empty {
+      padding: 48px 20px;
+      text-align: center;
+      color: var(--c-text-muted);
+      font-size: 13px;
+    }
+    .chart-empty i {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 12px;
+      color: var(--c-border-2);
+    }
+
+    /* ── Error card ────────────────────────────────────────────── */
+    .error-card {
+      max-width: 480px;
+      margin: 80px auto;
+      text-align: center;
+      color: var(--c-text-muted);
+      padding: 40px;
+    }
+    .error-card i { font-size: 32px; margin-bottom: 16px; color: var(--c-accent); display: block; }
+
+    /* ── Highlighted chord ─────────────────────────────────────── */
+    .chord-slot--highlight .chord-root { color: var(--c-accent); }
+    .chord-slot--highlight .chord-mod  { color: var(--c-accent-dim); }
+
+    /* Minor chord display modes */
+    .chord-root.minor-small { font-size: calc(var(--chord-font-size, 16px) * 0.78); }
   </style>
 </head>
 <body>
@@ -95,99 +445,591 @@
     </div>
   </nav>
 
-  <a href="index.html" class="back-link">
-    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-    Back to library
-  </a>
-
-  <div id="detail-container">
-    <!-- Filled by JS -->
-    <div class="detail-card" style="text-align:center; color: var(--c-text-muted);">
-      <div class="loader" style="justify-content:center;margin-bottom:16px;">
-        <span></span><span></span><span></span>
+  <div id="page-container">
+    <div class="detail-wrapper">
+      <div class="chart-empty">
+        <div class="loader" style="justify-content:center; margin-bottom:16px;">
+          <span></span><span></span><span></span>
+        </div>
+        Loading chart…
       </div>
-      Loading chart…
     </div>
   </div>
 
   <script type="module">
     import { SUPABASE_URL, SUPABASE_ANON_KEY, TABLE_NAME } from './js/config.js';
 
-    /**
-     * Fetch a single chart by ID from Supabase.
-     * @param {string} id
-     * @returns {Promise<object|null>}
-     */
+    // ─── Utilities ────────────────────────────────────────────────────────────
+
+    const esc = (val) =>
+      String(val ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // ─── Renderer state ───────────────────────────────────────────────────────
+
+    const state = {
+      transpose:     0,       // semitones: -12..+12
+      fontSize:      16,      // px: 10..32
+      minorMode:     'minus', // 'minus' | 'letter' | 'small'
+      useH:          false,   // replace B with H
+      rawMeasures:   [],      // parsed measure objects (pre-transpose)
+    };
+
+    // ─── API ──────────────────────────────────────────────────────────────────
+
     const fetchChart = async (id) => {
-      const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?id=eq.${encodeURIComponent(id)}&select=*&limit=1`;
+      const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}`
+        + `?id=eq.${encodeURIComponent(id)}&select=*&limit=1`;
+
       const res = await fetch(url, {
         headers: {
           apikey:        SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         },
       });
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       return data[0] ?? null;
     };
 
-    const esc = (val) =>
-      String(val ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // ─── iReal deobfuscation ──────────────────────────────────────────────────
+
+    const deobfuscate = (s) =>
+      s.replace(/([^1])(1r)/g, '$1 1r')
+       .split(/(?=1r)/g)
+       .map(deobfuscateSegment)
+       .join('');
+
+    const deobfuscateSegment = (seg) => {
+      if (seg.length < 50) return seg;
+      const result = new Array(50);
+      for (let i = 0; i < 25; i++) {
+        result[i]      = seg[24 - i];
+        result[49 - i] = seg[25 + i];
+      }
+      return result.join('') + seg.slice(50);
+    };
+
+    // ─── Transpose helpers ────────────────────────────────────────────────────
+
+    // All 12 chromatic notes in two spellings (sharp / flat)
+    const NOTES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const NOTES_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+
+    // Map from any enharmonic name to its semitone index
+    const NOTE_INDEX = {};
+    NOTES_SHARP.forEach((n, i) => { NOTE_INDEX[n] = i; });
+    NOTES_FLAT.forEach( (n, i) => { NOTE_INDEX[n] = i; });
+    // iReal uses 'h' as Bb sometimes, handled elsewhere
+    NOTE_INDEX['H'] = 11; // B in German notation
+
+    /**
+     * Prefer flat spellings for these roots (jazz convention).
+     * Otherwise use sharps.
+     */
+    const PREFER_FLAT = new Set(['F','Bb','Eb','Ab','Db','Gb']);
+
+    const transposeNote = (note, semitones) => {
+      if (!note || semitones === 0) return note;
+      const idx = NOTE_INDEX[note];
+      if (idx === undefined) return note;
+      const newIdx = ((idx + semitones) % 12 + 12) % 12;
+      // Choose flat or sharp spelling
+      const candidate = NOTES_SHARP[newIdx];
+      const candidateFlat = NOTES_FLAT[newIdx];
+      return PREFER_FLAT.has(candidateFlat) ? candidateFlat : candidate;
+    };
+
+    /**
+     * Apply state.transpose and state.useH to a chord object (non-destructively).
+     */
+    const applyDisplayOptions = (chord) => {
+      if (!chord || chord.special) return chord;
+      let root = transposeNote(chord.root, state.transpose);
+      let over = chord.over ? transposeNote(chord.over, state.transpose) : null;
+
+      // H for B substitution
+      if (state.useH) {
+        if (root === 'B')  root = 'H';
+        if (root === 'Bb') root = 'Hb';
+        if (over === 'B')  over = 'H';
+        if (over === 'Bb') over = 'Hb';
+      }
+
+      return { ...chord, root, over };
+    };
+
+    /**
+     * Convert "-" minor suffix to the display format chosen by state.minorMode.
+     * Works on the chord modifier string.
+     */
+    const formatMod = (mod, isMinor, root) => {
+      // isMinor is true when the raw mod starts with '-'
+      if (!isMinor) return { mod, minorPrefix: '' };
+
+      const rest = mod.slice(1); // everything after the '-'
+
+      switch (state.minorMode) {
+        case 'letter': return { mod: 'm' + rest, minorPrefix: '' };
+        case 'small':  return { mod: rest,        minorPrefix: root.toLowerCase(), isSmall: true };
+        default:       return { mod: '-' + rest,  minorPrefix: '' }; // 'minus'
+      }
+    };
+
+    // ─── Chord tokeniser ──────────────────────────────────────────────────────
+
+    const CHORD_RE = /^([A-Gn][#b]?)([-^+ΔΘø°hHalmMsud0-9]*)(?:\/([A-G][#b]?))?/;
+
+    const parseChordToken = (raw) => {
+      if (!raw || raw === 'W') return null;
+      if (raw === 'p')  return { root: '𝄽', mod: '', over: null, special: true };
+      if (raw === 'x')  return { root: '%',  mod: '', over: null, special: true };
+      if (raw === 'r')  return { root: '𝄎', mod: '', over: null, special: true };
+      if (raw === 'n')  return { root: 'N.C.',mod: '',over: null, special: true };
+
+      const clean = raw.replace(/h$/, 'ø').replace(/H$/, 'ø');
+      const m     = CHORD_RE.exec(clean);
+      if (!m) return null;
+
+      return {
+        root:    m[1] ?? '',
+        mod:     m[2] ?? '',
+        over:    m[3] ?? null,
+        special: false,
+      };
+    };
+
+    // ─── Measure builder ──────────────────────────────────────────────────────
+
+    const newMeasure = () => ({
+      chords:   [],
+      section:  null,
+      timesig:  null,
+      volta:    null,
+      barLeft:  'single',
+      barRight: 'single',
+    });
+
+    const pushMeasure = (arr, m, section, timesig, volta) => {
+      if (section) m.section = section;
+      if (timesig) m.timesig = timesig;
+      if (volta)   m.volta   = volta;
+      arr.push(m);
+    };
+
+    const formatTimesig = (code) => {
+      const MAP = { '44': '4/4', '34': '3/4', '64': '6/4', '68': '6/8',
+                    '54': '5/4', '74': '7/4', '12': '12/8', '22': '2/2' };
+      return MAP[code] ?? `${code[0]}/${code[1]}`;
+    };
+
+    const parseMusic = (music) => {
+      const measures = [];
+      let current = newMeasure();
+      let pendingSection = null;
+      let pendingTimesig = null;
+      let pendingVolta   = null;
+
+      const TOKEN_RE = /(\*[ABCDEFGHTivVI]+|T\d{2}|N\d|[{}[\]|Z]|[QSUfl]|[A-Gn][#b]?[-^+ΔΘø°hHalmMsud0-9]*(?:\/[A-G][#b]?)?|[Wxrp]|\s+)/g;
+      const atoms = [];
+      let match;
+      while ((match = TOKEN_RE.exec(music)) !== null) {
+        const tok = match[1];
+        if (/^\s+$/.test(tok)) continue;
+        atoms.push(tok);
+      }
+
+      for (const tok of atoms) {
+        if (/^\*/.test(tok))   { pendingSection = tok.slice(1); continue; }
+        if (/^T\d{2}$/.test(tok)) { pendingTimesig = formatTimesig(tok.slice(1)); continue; }
+        if (/^N\d$/.test(tok)) { pendingVolta = tok.slice(1); continue; }
+        if (/^[QSUfl]$/.test(tok)) continue;
+
+        if (tok === '{') { current.barLeft = 'repeat-open';  continue; }
+        if (tok === '[') { current.barLeft = 'double-open';  continue; }
+        if (tok === '|') {
+          if (current.chords.length > 0 || current.barLeft !== 'single') {
+            pushMeasure(measures, current, pendingSection, pendingTimesig, pendingVolta);
+            pendingSection = pendingTimesig = pendingVolta = null;
+            current = newMeasure();
+          }
+          continue;
+        }
+        if (tok === '}') {
+          current.barRight = 'repeat-close';
+          pushMeasure(measures, current, pendingSection, pendingTimesig, pendingVolta);
+          pendingSection = pendingTimesig = pendingVolta = null;
+          current = newMeasure();
+          continue;
+        }
+        if (tok === ']') {
+          current.barRight = 'double-close';
+          pushMeasure(measures, current, pendingSection, pendingTimesig, pendingVolta);
+          pendingSection = pendingTimesig = pendingVolta = null;
+          current = newMeasure();
+          continue;
+        }
+        if (tok === 'Z') {
+          current.barRight = 'final';
+          pushMeasure(measures, current, pendingSection, pendingTimesig, pendingVolta);
+          pendingSection = pendingTimesig = pendingVolta = null;
+          current = newMeasure();
+          continue;
+        }
+
+        const chord = parseChordToken(tok);
+        if (chord !== null && current.chords.length < 4) {
+          current.chords.push(chord);
+        }
+      }
+
+      if (current.chords.length > 0) {
+        pushMeasure(measures, current, pendingSection, pendingTimesig, pendingVolta);
+      }
+
+      return measures;
+    };
+
+    // ─── iReal URL extractor ──────────────────────────────────────────────────
+
+    const extractMusicFromUrl = (url) => {
+      if (!url) return null;
+      let scheme, payload;
+      if (url.startsWith('irealbook://')) {
+        scheme  = 'irealbook';
+        payload = decodeURIComponent(url.slice('irealbook://'.length));
+      } else if (url.startsWith('irealb://')) {
+        scheme  = 'irealb';
+        payload = decodeURIComponent(url.slice('irealb://'.length));
+      } else {
+        return null;
+      }
+
+      const parts = payload.split('=');
+      if (parts.length < 6) return null;
+      let music = parts.slice(5).join('=');
+      if (scheme === 'irealb') music = deobfuscate(music);
+      return { music, scheme };
+    };
+
+    // ─── HTML renderer ────────────────────────────────────────────────────────
+
+    const renderChordSlot = (chord) => {
+      if (!chord) return `<div class="chord-slot"></div>`;
+
+      if (chord.special) {
+        return `<div class="chord-slot">
+          <span class="chord-symbol">${esc(chord.root)}</span>
+        </div>`;
+      }
+
+      // Apply transpose + H substitution
+      const d = applyDisplayOptions(chord);
+
+      const isMinor = d.mod.startsWith('-');
+      const { mod: displayMod, minorPrefix, isSmall } = formatMod(d.mod, isMinor, d.root);
+
+      let rootHtml;
+      if (isSmall && state.minorMode === 'small') {
+        // Small-letters mode: show entire chord root in lowercase, smaller
+        rootHtml = `<div class="chord-root minor-small">${esc(d.root.toLowerCase())}</div>`;
+      } else if (minorPrefix) {
+        rootHtml = `<div class="chord-root">${esc(minorPrefix)}</div>`;
+      } else {
+        rootHtml = `<div class="chord-root">${esc(d.root)}</div>`;
+      }
+
+      const overHtml = d.over
+        ? `<div class="chord-over">/${esc(d.over)}</div>`
+        : '';
+
+      return `<div class="chord-slot">
+        ${rootHtml}
+        ${displayMod ? `<div class="chord-mod">${esc(displayMod)}</div>` : ''}
+        ${overHtml}
+      </div>`;
+    };
+
+    const renderMeasure = (m) => {
+      const leftClass  = m.barLeft  !== 'single' ? ` measure--${m.barLeft}`  : '';
+      const rightClass = m.barRight !== 'single' ? ` measure--${m.barRight}` : '';
+
+      const sectionHtml = m.section
+        ? `<span class="measure__section">§${esc(m.section)}</span>` : '';
+      const voltaHtml = m.volta
+        ? `<span class="measure__volta">${esc(m.volta)}.</span>` : '';
+      const timesigHtml = m.timesig
+        ? `<span class="measure__timesig">${esc(m.timesig)}</span>` : '';
+
+      const chordsHtml = m.chords.length > 0
+        ? m.chords.map(renderChordSlot).join('')
+        : `<div class="chord-slot"></div>`;
+
+      return `
+        <div class="measure${leftClass}${rightClass}">
+          ${sectionHtml}${voltaHtml}${timesigHtml}
+          <div class="measure__chords">${chordsHtml}</div>
+        </div>`;
+    };
+
+    const renderGrid = (measures) => {
+      if (measures.length === 0) {
+        return `<div class="chart-empty">
+          <i class="fa-solid fa-music-slash" aria-hidden="true"></i>
+          No measures could be parsed from this chart.
+        </div>`;
+      }
+
+      const padded = [...measures];
+      while (padded.length % 4 !== 0) padded.push(newMeasure());
+
+      const rows = [];
+      for (let i = 0; i < padded.length; i += 4) {
+        const row = padded.slice(i, i + 4);
+        rows.push(`<div class="chart-row">${row.map(renderMeasure).join('')}</div>`);
+      }
+      return `<div class="chart-grid">${rows.join('')}</div>`;
+    };
+
+    // ─── Controls builder ─────────────────────────────────────────────────────
+
+    const buildControls = () => `
+      <div class="controls-panel" id="controls-panel">
+
+        <!-- Transpose -->
+        <div class="control-group">
+          <label><i class="fa-solid fa-arrows-up-down" style="margin-right:4px"></i>Transpose</label>
+          <div class="stepper" id="stepper-transpose">
+            <button id="transpose-down" title="Transpose down">−</button>
+            <span class="stepper-val" id="transpose-val">0</span>
+            <button id="transpose-up" title="Transpose up">+</button>
+          </div>
+        </div>
+
+        <div class="controls-divider"></div>
+
+        <!-- Font size -->
+        <div class="control-group">
+          <label><i class="fa-solid fa-text-height" style="margin-right:4px"></i>Font size</label>
+          <div class="stepper" id="stepper-fontsize">
+            <button id="fontsize-down" title="Smaller">−</button>
+            <span class="stepper-val" id="fontsize-val">16px</span>
+            <button id="fontsize-up" title="Larger">+</button>
+          </div>
+        </div>
+
+        <div class="controls-divider"></div>
+
+        <!-- Minor chord display -->
+        <div class="control-group">
+          <label><i class="fa-solid fa-music" style="margin-right:4px"></i>Minor chords</label>
+          <div class="radio-group" id="minor-group">
+            <label class="radio-option selected">
+              <input type="radio" name="minor-mode" value="minus" checked />
+              Minus sign <em style="color:inherit;opacity:.65">(Bb−)</em>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="minor-mode" value="letter" />
+              Letter "m" <em style="color:inherit;opacity:.65">(Bbm)</em>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="minor-mode" value="small" />
+              Small letters <em style="color:inherit;opacity:.65">(bb)</em>
+            </label>
+          </div>
+        </div>
+
+        <div class="controls-divider"></div>
+
+        <!-- H for B -->
+        <div class="control-group">
+          <label><i class="fa-solid fa-toggle-on" style="margin-right:4px"></i>B / H notation</label>
+          <label class="toggle-label" id="h-toggle-label">
+            <span class="toggle-switch">
+              <input type="checkbox" id="use-h-checkbox" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </span>
+            Use H for B chords
+          </label>
+        </div>
+
+      </div>
+    `;
+
+    // ─── Re-render grid only (fast path) ─────────────────────────────────────
+
+    const refreshGrid = () => {
+      // Update font-size CSS variable on the chart grid
+      const grid = document.querySelector('.chart-grid');
+      if (grid) {
+        grid.style.setProperty('--chord-font-size', `${state.fontSize}px`);
+        grid.innerHTML = ''; // rebuild
+      }
+
+      // Re-render
+      const gridContainer = document.getElementById('chart-grid-container');
+      if (gridContainer) {
+        const html = renderGrid(state.rawMeasures);
+        gridContainer.innerHTML = html;
+        // Apply font size variable to newly created grid
+        const newGrid = gridContainer.querySelector('.chart-grid');
+        if (newGrid) newGrid.style.setProperty('--chord-font-size', `${state.fontSize}px`);
+      }
+    };
+
+    // ─── Bind controls ────────────────────────────────────────────────────────
+
+    const bindControls = () => {
+      // Transpose
+      document.getElementById('transpose-down').addEventListener('click', () => {
+        if (state.transpose > -12) {
+          state.transpose--;
+          document.getElementById('transpose-val').textContent = state.transpose >= 0 ? `+${state.transpose}` : `${state.transpose}`;
+          refreshGrid();
+        }
+      });
+      document.getElementById('transpose-up').addEventListener('click', () => {
+        if (state.transpose < 12) {
+          state.transpose++;
+          document.getElementById('transpose-val').textContent = state.transpose >= 0 ? `+${state.transpose}` : `${state.transpose}`;
+          refreshGrid();
+        }
+      });
+
+      // Font size
+      document.getElementById('fontsize-down').addEventListener('click', () => {
+        if (state.fontSize > 10) {
+          state.fontSize -= 2;
+          document.getElementById('fontsize-val').textContent = `${state.fontSize}px`;
+          refreshGrid();
+        }
+      });
+      document.getElementById('fontsize-up').addEventListener('click', () => {
+        if (state.fontSize < 32) {
+          state.fontSize += 2;
+          document.getElementById('fontsize-val').textContent = `${state.fontSize}px`;
+          refreshGrid();
+        }
+      });
+
+      // Minor chord mode
+      document.querySelectorAll('input[name="minor-mode"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+          state.minorMode = radio.value;
+          // Update "selected" class on labels
+          document.querySelectorAll('.radio-option').forEach((lbl) => lbl.classList.remove('selected'));
+          radio.closest('.radio-option').classList.add('selected');
+          refreshGrid();
+        });
+      });
+
+      // H for B
+      document.getElementById('use-h-checkbox').addEventListener('change', (e) => {
+        state.useH = e.target.checked;
+        refreshGrid();
+      });
+    };
+
+    // ─── Page renderer ────────────────────────────────────────────────────────
 
     const render = (chart) => {
       document.title = `${chart.title} — Chord Charts Library`;
-      const scheme = chart.url?.startsWith('irealbook://') ? 'IREALBOOK' : 'IREALB';
 
-      document.getElementById('detail-container').innerHTML = `
-        <div class="detail-card">
-          <h1>${esc(chart.title)}</h1>
-          <p style="color:var(--c-text-muted);font-size:13px;">${esc(chart.composer) || 'Unknown composer'}</p>
-          <span class="wip-badge">🚧 Chart visualisation coming soon</span>
+      let gridHtml      = '';
+      let parseErrorMsg = '';
 
-          <div class="meta">
-            <div class="meta-item">
-              <label>Key</label>
-              <span>${esc(chart.key) || '—'}</span>
+      const extracted = extractMusicFromUrl(chart.url);
+      if (extracted) {
+        try {
+          state.rawMeasures = parseMusic(extracted.music);
+          gridHtml          = renderGrid(state.rawMeasures);
+        } catch (err) {
+          console.warn('[view] chart parse error', err);
+          parseErrorMsg = err.message;
+          gridHtml      = `<div class="chart-empty">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            Could not render chart — parse error.
+          </div>`;
+        }
+      } else {
+        gridHtml = `<div class="chart-empty">
+          <i class="fa-solid fa-link-slash" aria-hidden="true"></i>
+          No iReal Pro URL available for this chart.
+        </div>`;
+      }
+
+      const scheme       = chart.url?.startsWith('irealbook://') ? 'irealbook' : 'irealb';
+      const openBtnClass = scheme === 'irealbook' ? 'open-btn open-btn--irealbook' : 'open-btn';
+      const schemeLabel  = scheme === 'irealbook' ? 'IREALBOOK' : 'IREALB';
+
+      const pills = [
+        chart.key      ? `<span class="meta-pill meta-pill--key"><strong>${esc(chart.key)}</strong></span>` : '',
+        chart.groove   ? `<span class="meta-pill"><i class="fa-solid fa-drum" aria-hidden="true"></i> <strong>${esc(chart.groove)}</strong></span>` : '',
+        chart.style    ? `<span class="meta-pill"><i class="fa-solid fa-music" aria-hidden="true"></i> <strong>${esc(chart.style)}</strong></span>` : '',
+        chart.bpm      ? `<span class="meta-pill"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i> <strong>${esc(chart.bpm)}</strong> bpm</span>` : '',
+        chart.transpose != null ? `<span class="meta-pill"><i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i> transpose <strong>${esc(chart.transpose)}</strong></span>` : '',
+        chart.repeats  != null  ? `<span class="meta-pill"><i class="fa-solid fa-repeat" aria-hidden="true"></i> <strong>${esc(chart.repeats)}×</strong></span>` : '',
+      ].filter(Boolean).join('');
+
+      const errorLabelHtml = parseErrorMsg
+        ? `<span class="parse-error"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(parseErrorMsg)}</span>`
+        : '';
+
+      document.getElementById('page-container').innerHTML = `
+        <div class="detail-wrapper">
+
+          <a href="index.html" class="back-link">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            Back to library
+          </a>
+
+          <div class="chart-header">
+            <div class="chart-header__main">
+              <h1>${esc(chart.title)}</h1>
+              <p class="composer">${esc(chart.composer) || 'Unknown composer'}</p>
             </div>
-            <div class="meta-item">
-              <label>BPM</label>
-              <span>${esc(chart.bpm) || '—'}</span>
+            ${chart.url ? `
+              <a href="${esc(chart.url)}" class="${openBtnClass}">
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                Open in iReal Pro (${schemeLabel})
+              </a>` : ''}
+          </div>
+
+          ${pills ? `<div class="meta-row">${pills}</div>` : ''}
+
+          ${buildControls()}
+
+          <div class="chart-area">
+            <div class="chart-area__label">
+              Chart
+              ${errorLabelHtml}
             </div>
-            <div class="meta-item">
-              <label>Groove</label>
-              <span>${esc(chart.groove) || '—'}</span>
-            </div>
-            <div class="meta-item">
-              <label>Style</label>
-              <span>${esc(chart.style) || '—'}</span>
-            </div>
-            <div class="meta-item">
-              <label>Transpose</label>
-              <span>${chart.transpose != null ? esc(chart.transpose) : '—'}</span>
-            </div>
-            <div class="meta-item">
-              <label>Repeats</label>
-              <span>${chart.repeats != null ? esc(chart.repeats) : '—'}</span>
+            <div id="chart-grid-container">
+              ${gridHtml}
             </div>
           </div>
 
-          ${chart.url ? `<a href="${esc(chart.url)}" class="open-btn">
-            <i class="fa-solid fa-music" aria-hidden="true"></i>
-            Open in iReal Pro (${scheme})
-          </a>` : ''}
         </div>`;
+
+      // Apply initial font size to grid
+      const grid = document.querySelector('.chart-grid');
+      if (grid) grid.style.setProperty('--chord-font-size', `${state.fontSize}px`);
+
+      // Wire up controls
+      bindControls();
     };
 
     const renderError = (msg) => {
-      document.getElementById('detail-container').innerHTML = `
-        <div class="detail-card" style="text-align:center;color:var(--c-text-muted);">
-          <i class="fa-solid fa-triangle-exclamation" style="font-size:32px;margin-bottom:16px;color:var(--c-accent);"></i>
-          <p>${msg}</p>
-          <a href="index.html" style="display:inline-block;margin-top:16px;" class="nav-btn" style="padding:8px 16px;">← Back</a>
+      document.getElementById('page-container').innerHTML = `
+        <div class="error-card">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <p>${esc(msg)}</p>
+          <a href="index.html" style="display:inline-block;margin-top:16px;" class="nav-btn">← Back</a>
         </div>`;
     };
 
-    // Bootstrap
+    // ─── Bootstrap ────────────────────────────────────────────────────────────
+
     const params = new URLSearchParams(window.location.search);
     const id     = params.get('id');
 
@@ -199,5 +1041,6 @@
         .catch((err)  => renderError(`Failed to load chart: ${err.message}`));
     }
   </script>
+
 </body>
 </html>
