@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chord Charts Library</title>
+  <meta name="description" content="Free chord charts scraped from the iReal Pro community forum." />
+
+  <!-- Favicon: music note emoji as SVG data URI -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+
+  <!-- Google Fonts: Syne (display) + DM Mono (body/data) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       NAVIGATION BAR
+  ═══════════════════════════════════════════ -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar__brand">
+      <span class="navbar__icon" aria-hidden="true">🎵</span>
+      <span class="navbar__title">Chord Charts Library</span>
+    </div>
+
+    <div class="navbar__actions">
+      <button
+        id="btn-random"
+        class="nav-btn"
+        title="Open a random chart"
+        aria-label="Open a random chart"
+      >
+        <i class="fa-solid fa-shuffle"></i>
+      </button>
+
+      <a
+        href="https://github.com/OrangeJuce82/chord-charts-library"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="nav-btn"
+        title="View source on GitHub"
+        aria-label="View source on GitHub"
+      >
+        <i class="fa-brands fa-github"></i>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- Hero / project description -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__text">
+        <h1 id="hero-title" class="hero__heading">
+          Free Jazz &amp; Standards Charts
+        </h1>
+        <p class="hero__description">
+          A community-sourced collection of chord charts scraped from the
+          <a href="https://forums.irealpro.com/" target="_blank" rel="noopener noreferrer">iReal Pro forum</a>.
+          Open directly in <strong>iReal Pro</strong> with one click.
+        </p>
+      </div>
+      <div class="hero__stats">
+        <span class="stat-badge">
+          <i class="fa-solid fa-music" aria-hidden="true"></i>
+          <span id="total-count" class="stat-badge__value">—</span>
+          <span class="stat-badge__label">charts available</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- Filter panel -->
+    <section class="filter-panel" aria-label="Search and filter charts">
+      <div class="filter-panel__header">
+        <h2 class="filter-panel__title">
+          <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+          Filters
+        </h2>
+        <button id="btn-reset" class="btn-reset" title="Clear all filters" aria-label="Clear all filters">
+          <i class="fa-solid fa-xmark"></i> Reset
+        </button>
+      </div>
+
+      <div class="filter-grid">
+        <!-- Title text search -->
+        <div class="filter-field">
+          <label class="filter-field__label" for="filter-title">Title</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-magnifying-glass input-icon" aria-hidden="true"></i>
+            <input
+              id="filter-title"
+              type="text"
+              class="filter-input"
+              placeholder="Search by title…"
+              autocomplete="off"
+              aria-label="Filter by title"
+            />
+          </div>
+        </div>
+
+        <!-- Composer tag input -->
+        <div class="filter-field">
+          <label class="filter-field__label" for="filter-composer">Composer</label>
+          <div class="tag-input-wrapper" id="composer-wrapper">
+            <div class="tag-input__tags" id="composer-tags" aria-live="polite"></div>
+            <input
+              id="filter-composer"
+              type="text"
+              class="tag-input__field"
+              placeholder="Add composer…"
+              autocomplete="off"
+              aria-label="Filter by composer"
+              aria-autocomplete="list"
+              aria-controls="composer-suggestions"
+            />
+            <ul id="composer-suggestions" class="suggestions" role="listbox" aria-label="Composer suggestions"></ul>
+          </div>
+        </div>
+
+        <!-- Groove tag input -->
+        <div class="filter-field">
+          <label class="filter-field__label" for="filter-groove">Groove</label>
+          <div class="tag-input-wrapper" id="groove-wrapper">
+            <div class="tag-input__tags" id="groove-tags" aria-live="polite"></div>
+            <input
+              id="filter-groove"
+              type="text"
+              class="tag-input__field"
+              placeholder="Add groove…"
+              autocomplete="off"
+              aria-label="Filter by groove"
+              aria-autocomplete="list"
+              aria-controls="groove-suggestions"
+            />
+            <ul id="groove-suggestions" class="suggestions" role="listbox" aria-label="Groove suggestions"></ul>
+          </div>
+        </div>
+
+        <!-- Style tag input -->
+        <div class="filter-field">
+          <label class="filter-field__label" for="filter-style">Style</label>
+          <div class="tag-input-wrapper" id="style-wrapper">
+            <div class="tag-input__tags" id="style-tags" aria-live="polite"></div>
+            <input
+              id="filter-style"
+              type="text"
+              class="tag-input__field"
+              placeholder="Add style…"
+              autocomplete="off"
+              aria-label="Filter by style"
+              aria-autocomplete="list"
+              aria-controls="style-suggestions"
+            />
+            <ul id="style-suggestions" class="suggestions" role="listbox" aria-label="Style suggestions"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results table -->
+    <section class="results-section" aria-label="Search results">
+      <div class="results-header">
+        <span id="results-count" class="results-count" aria-live="polite" aria-atomic="true">Loading…</span>
+      </div>
+
+      <div class="table-wrapper" role="region" aria-label="Charts table" tabindex="0">
+        <table class="charts-table" id="charts-table" aria-label="Chord charts">
+          <thead>
+            <tr>
+              <th class="col-title sortable" data-sort="title" scope="col" tabindex="0" aria-sort="none">
+                Title <span class="sort-icon" aria-hidden="true"></span>
+              </th>
+              <th class="col-composer sortable" data-sort="composer" scope="col" tabindex="0" aria-sort="none">
+                Composer <span class="sort-icon" aria-hidden="true"></span>
+              </th>
+              <th class="col-groove sortable" data-sort="groove" scope="col" tabindex="0" aria-sort="none">
+                Groove <span class="sort-icon" aria-hidden="true"></span>
+              </th>
+              <th class="col-style sortable" data-sort="style" scope="col" tabindex="0" aria-sort="none">
+                Style <span class="sort-icon" aria-hidden="true"></span>
+              </th>
+              <th class="col-key sortable" data-sort="key" scope="col" tabindex="0" aria-sort="none">
+                Key <span class="sort-icon" aria-hidden="true"></span>
+              </th>
+              <th class="col-bpm sortable" data-sort="bpm" scope="col" tabindex="0" aria-sort="none">
+                BPM <span class="sort-icon" aria-hidden="true"></span>
+              </th>
+              <th class="col-open" scope="col">Open</th>
+              <th class="col-view" scope="col">View</th>
+            </tr>
+          </thead>
+          <tbody id="charts-tbody">
+            <tr class="row--loading">
+              <td colspan="8">
+                <div class="loader" aria-label="Loading charts…">
+                  <span></span><span></span><span></span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination" aria-label="Pagination" role="navigation"></div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <p>
+      Charts sourced from
+      <a href="https://forums.irealpro.com/" target="_blank" rel="noopener noreferrer">forums.irealpro.com</a>
+      · Built with ❤️ by
+      <a href="https://github.com/OrangeJuce82" target="_blank" rel="noopener noreferrer">OrangeJuce82</a>
+    </p>
+  </footer>
+
+  <!-- App scripts -->
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/api.js"></script>
+  <script type="module" src="js/filters.js"></script>
+  <script type="module" src="js/table.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

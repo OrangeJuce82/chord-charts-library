@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chart Detail — Chord Charts Library</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .detail-card {
+      max-width: 640px;
+      margin: 48px auto;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+    }
+    .detail-card h1 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .detail-card .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .detail-card .meta-item label {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--c-text-muted);
+      margin-bottom: 4px;
+    }
+    .detail-card .meta-item span {
+      font-size: 14px;
+      color: var(--c-text);
+    }
+    .detail-card .open-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 10px 24px;
+      background: var(--c-accent);
+      color: #0e0d0b;
+      border-radius: var(--radius-md);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      transition: opacity var(--transition);
+    }
+    .detail-card .open-btn:hover { opacity: .85; }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 24px 48px;
+      color: var(--c-text-muted);
+      font-size: 12px;
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--c-accent); opacity: 1; }
+    .wip-badge {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 4px 10px;
+      background: rgba(232,149,42,.15);
+      border: 1px solid rgba(232,149,42,.3);
+      border-radius: var(--radius-pill);
+      color: var(--c-accent);
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation">
+    <div class="navbar__brand">
+      <span class="navbar__icon" aria-hidden="true">🎵</span>
+      <span class="navbar__title">Chord Charts Library</span>
+    </div>
+    <div class="navbar__actions">
+      <a href="index.html" class="nav-btn" title="Back to library" aria-label="Back to library">
+        <i class="fa-solid fa-arrow-left"></i>
+      </a>
+    </div>
+  </nav>
+
+  <a href="index.html" class="back-link">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    Back to library
+  </a>
+
+  <div id="detail-container">
+    <!-- Filled by JS -->
+    <div class="detail-card" style="text-align:center; color: var(--c-text-muted);">
+      <div class="loader" style="justify-content:center;margin-bottom:16px;">
+        <span></span><span></span><span></span>
+      </div>
+      Loading chart…
+    </div>
+  </div>
+
+  <script type="module">
+    import { SUPABASE_URL, SUPABASE_ANON_KEY, TABLE_NAME } from './js/config.js';
+
+    /**
+     * Fetch a single chart by ID from Supabase.
+     * @param {string} id
+     * @returns {Promise<object|null>}
+     */
+    const fetchChart = async (id) => {
+      const url = `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?id=eq.${encodeURIComponent(id)}&select=*&limit=1`;
+      const res = await fetch(url, {
+        headers: {
+          apikey:        SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      return data[0] ?? null;
+    };
+
+    const esc = (val) =>
+      String(val ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const render = (chart) => {
+      document.title = `${chart.title} — Chord Charts Library`;
+      const scheme = chart.url?.startsWith('irealbook://') ? 'IREALBOOK' : 'IREALB';
+
+      document.getElementById('detail-container').innerHTML = `
+        <div class="detail-card">
+          <h1>${esc(chart.title)}</h1>
+          <p style="color:var(--c-text-muted);font-size:13px;">${esc(chart.composer) || 'Unknown composer'}</p>
+          <span class="wip-badge">🚧 Chart visualisation coming soon</span>
+
+          <div class="meta">
+            <div class="meta-item">
+              <label>Key</label>
+              <span>${esc(chart.key) || '—'}</span>
+            </div>
+            <div class="meta-item">
+              <label>BPM</label>
+              <span>${esc(chart.bpm) || '—'}</span>
+            </div>
+            <div class="meta-item">
+              <label>Groove</label>
+              <span>${esc(chart.groove) || '—'}</span>
+            </div>
+            <div class="meta-item">
+              <label>Style</label>
+              <span>${esc(chart.style) || '—'}</span>
+            </div>
+            <div class="meta-item">
+              <label>Transpose</label>
+              <span>${chart.transpose != null ? esc(chart.transpose) : '—'}</span>
+            </div>
+            <div class="meta-item">
+              <label>Repeats</label>
+              <span>${chart.repeats != null ? esc(chart.repeats) : '—'}</span>
+            </div>
+          </div>
+
+          ${chart.url ? `<a href="${esc(chart.url)}" class="open-btn">
+            <i class="fa-solid fa-music" aria-hidden="true"></i>
+            Open in iReal Pro (${scheme})
+          </a>` : ''}
+        </div>`;
+    };
+
+    const renderError = (msg) => {
+      document.getElementById('detail-container').innerHTML = `
+        <div class="detail-card" style="text-align:center;color:var(--c-text-muted);">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size:32px;margin-bottom:16px;color:var(--c-accent);"></i>
+          <p>${msg}</p>
+          <a href="index.html" style="display:inline-block;margin-top:16px;" class="nav-btn" style="padding:8px 16px;">← Back</a>
+        </div>`;
+    };
+
+    // Bootstrap
+    const params = new URLSearchParams(window.location.search);
+    const id     = params.get('id');
+
+    if (!id) {
+      renderError('No chart ID specified.');
+    } else {
+      fetchChart(id)
+        .then((chart) => chart ? render(chart) : renderError('Chart not found.'))
+        .catch((err)  => renderError(`Failed to load chart: ${err.message}`));
+    }
+  </script>
+</body>
+</html>

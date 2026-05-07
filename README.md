@@ -1,37 +1,116 @@
-# chord-charts-library
+# 🎵 Chord Charts Library
 
-A chord chart library
+A clean, fast static web app to browse free chord charts scraped from the [iReal Pro community forum](https://forums.irealpro.com/).
 
-## Scraping
+**Live demo →** `https://OrangeJuce82.github.io/chord-charts-library/`
 
-To scrape data from irealb.com, run the spider with:
+---
+
+## Features
+
+- 🔍 **Live search** — filters update results instantly as you type
+- 🏷️ **Tag filters** with autocomplete for Composer, Groove and Style
+- 📊 **Sortable table** — click any column header
+- 🎲 **Random chart** button — opens a random chart directly in iReal Pro
+- 🎨 **Clickable tags** in the table — click to add to active filters
+- 📱 Responsive layout
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| UI | Vanilla JS (ES Modules) · HTML5 · CSS3 |
+| Data | [Supabase](https://supabase.com/) (PostgREST API) |
+| Fonts | Syne · DM Mono (Google Fonts) |
+| Icons | Font Awesome 6 |
+| Hosting | GitHub Pages |
+
+No build step. No framework. No dependencies to install.
+
+---
+
+## Getting started
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/OrangeJuce82/chord-charts-library.git
+cd chord-charts-library
+```
+
+### 2. Configure Supabase
+
+Edit **`js/config.js`** and fill in your project credentials:
+
+```js
+export const SUPABASE_URL      = 'https://YOUR_PROJECT_REF.supabase.co';
+export const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+```
+
+> ⚠️ These are your **anon (public)** keys — they are safe to expose in a static site.
+> Make sure your Supabase table has **Row Level Security** enabled with a policy allowing anonymous `SELECT`.
+
+### 3. Supabase table schema
+
+The app expects a table named `ireal_pro_charts` with the following columns:
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | int8 / uuid | Primary key |
+| `url` | text | iReal Pro deep link (`irealb://` or `irealbook://`) |
+| `title` | text | Chart title |
+| `composer` | text | Composer name |
+| `style` | text | Musical style |
+| `key` | text | Musical key |
+| `transpose` | int4 | Semitones to transpose |
+| `groove` | text | Groove type |
+| `bpm` | int4 | Beats per minute |
+| `repeats` | int4 | Number of repeats |
+
+### 4. Run locally
+
+Because the app uses ES Modules, you need a local HTTP server (not `file://`):
+
+```bash
+# Python 3
+python -m http.server 8080
+
+# Node (npx)
+npx serve .
+```
+
+Then open `http://localhost:8080`.
+
+### 5. Deploy to GitHub Pages
+
+Push to your repo and enable **GitHub Pages** from `Settings → Pages → Source: main branch / root`.
+
+The site requires no build step — it deploys as-is.
+
+---
+
+## Project structure
 
 ```
-uv run scrapy crawl irealb
+chord-charts-library/
+├── index.html          # Main page
+├── view.html           # Chart detail page (stub for future use)
+├── css/
+│   └── style.css       # All styles (CSS custom properties + dark theme)
+└── js/
+    ├── config.js       # ← Edit this with your Supabase keys
+    ├── api.js          # Supabase REST API calls
+    ├── filters.js      # TagInput component + debounce utility
+    ├── table.js        # Table & pagination rendering
+    └── app.js          # Main orchestrator
 ```
 
-This will start the IRealB spider and collect chord chart data.
+---
 
-## Post Processing
+## License
 
-Clean, Sort then filter duplicate lines once crawling is finished
+MIT — do whatever you want, attribution appreciated.
 
-```
-sed 's/"//g' data/irealb_urls.csv > data/irealb_urls_20260503_cleaned.txt
-sort data/irealb_urls_20260503_cleaned.txt | uniq > data/irealb_urls_20260503_sorted.txt
-```
-
-Then run CLI to make a CSV with song and metadata
-
-```
-uv run cli/ireal_song_extractor.py data/irealb_urls_20260503_sorted.txt data/irealb_songs_20260503.txt
-uv run cli/ireal_csv_maker.py data/irealb_songs_20260503.txt data/irealb_songs_with_metadata_20260503.csv
-```
-
-# Github Projects about iReal Pro
-
-- https://github.com/infojunkie/chirp
-- https://github.com/infojunkie/ireal-musicxml
-- https://github.com/este36/musicxml-irealpro
-- https://github.com/daumling/ireal-renderer
-- https://github.com/memowe/pyrealpro-format/tree/main
+Charts belong to their respective authors on the iReal Pro forum.
