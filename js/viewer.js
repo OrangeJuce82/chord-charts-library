@@ -147,7 +147,7 @@ const renderShell = () => {
               <legend>Minor chords</legend>
               <label class="segmented-option">
                 <input type="radio" name="minor-mode" value="minus" checked />
-                <span>C-</span>
+                <span>C&ndash;</span>
               </label>
               <label class="segmented-option">
                 <input type="radio" name="minor-mode" value="m" />

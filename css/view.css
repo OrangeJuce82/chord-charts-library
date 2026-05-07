@@ -427,7 +427,7 @@ input[type="range"] {
   --chart-cell-height: calc(112px * var(--chart-scale));
   --chart-chord-height: calc(86px * var(--chart-scale));
   --chart-chord-pad-top: calc(30px * var(--chart-scale));
-  --chart-chord-pad-inline: calc(8px * var(--chart-scale));
+  --chart-chord-pad-inline: calc(5px * var(--chart-scale));
   --chart-bar-height: calc(77px * var(--chart-scale));
   --chart-repeat-bar-height: calc(85px * var(--chart-scale));
   --chart-bar-top: calc(26px * var(--chart-scale));
@@ -477,8 +477,8 @@ input[type="range"] {
 .ireal-render-target .irr-root-note {
   display: inline-block;
   font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
-  font-size: 1em;
-  font-weight: 400;
+  font-size: 0.85em;
+  font-weight: 800;
   line-height: 1;
   transform: scaleX(.75);
   transform-origin: left center;
@@ -497,10 +497,10 @@ input[type="range"] {
   position: relative;
   display: inline-block;
   top: -.42em;
-  left: -.13em;
-  margin-right: -.18em;
+  left: -.07em;
   font-family: "BravuraRegular", serif;
-  font-size: .9em;
+  font-size: .75em;
+  font-weight: 400;
   line-height: 1;
   transform: none;
 }
@@ -509,9 +509,10 @@ input[type="range"] {
   position: relative;
   top: .2em;
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: nowrap;
-  margin-left: .02em;
+  height: 1em;
+  margin-left: -.3em;
   font-family: "MyriadProRegular", "Myriad Pro", Arial, sans-serif;
   font-size: .46em;
   font-weight: 400;
@@ -522,29 +523,46 @@ input[type="range"] {
 
 .ireal-render-target .irr-quality-accidental {
   position: relative;
-  top: .12em;
-  display: inline-block;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 1em;
   margin: 0 -.03em 0 .02em;
   font-family: "BravuraRegular", serif;
   font-size: 1.3em;
   line-height: 1;
-  vertical-align: baseline;
+  vertical-align: middle;
 }
 
 .ireal-render-target irr-over {
   position: absolute;
-  left: calc(38px * var(--chart-scale));
-  top: calc(82px * var(--chart-scale));
+  left: calc(21px * var(--chart-scale));
+  top: calc(92px * var(--chart-scale));
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   color: #fff;
-  font-size: .62em;
+  font-size: .5em;
   line-height: 1;
 }
 
 .ireal-render-target irr-over::before {
-  content: "/";
-  margin-right: 1px;
+  content: "";
+  position: relative;
+  top: -10px;
+  display: inline-block;
+  width: calc(2px * var(--chart-scale));
+  height: calc(28px * var(--chart-scale));
+  margin-right: calc(3px * var(--chart-scale));
+  background: #fff;
+  transform: rotate(45deg);
+  transform-origin: center;
+}
+
+.ireal-render-target irr-over .irr-root-note + .irr-root-accidental {
+  top: 0.1em;
+  left: .05em;
+  margin-right: -.08em;
+  font-size: .72em;
 }
 
 .ireal-render-target irr-section,
@@ -574,12 +592,12 @@ input[type="range"] {
 .ireal-render-target irr-section[class^="irr-section-"] {
   top: calc(var(--chart-bar-top) - 26px);
   left: calc(-15px * var(--chart-scale));
-  width: 20px;
-  min-width: 20px;
-  max-width: 20px;
-  height: 22px;
-  min-height: 22px;
-  max-height: 22px;
+  width: calc(20px * var(--chart-scale));
+  min-width: calc(20px * var(--chart-scale));
+  max-width: calc(20px * var(--chart-scale));
+  height: calc(22px * var(--chart-scale));
+  min-height: calc(22px * var(--chart-scale));
+  max-height: calc(22px * var(--chart-scale));
   overflow: hidden;
   color: transparent;
   background-color: #fff;
@@ -718,8 +736,8 @@ input[type="range"] {
 .ireal-render-target .Repeated-Figure2,
 .ireal-render-target .Repeated-Figure3 {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: calc(50% + (4px * var(--chart-scale)));
+  top: calc(var(--chart-bar-top) + (var(--chart-bar-height) / 2));
   display: inline-block;
   background-color: #fff;
   color: transparent;

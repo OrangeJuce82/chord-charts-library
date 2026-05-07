@@ -373,6 +373,7 @@ class iRealRenderer {
 		}
 		if (modifiers) {
 			modifiers = modifiers
+				.replace(/-/g, "\u2013")
 				.replace("^", "\u25B3")
 				.replace("h", "\u00D8")
 				.replace(/([\u266d\u266f])/g, "<span class=\"irr-quality-accidental\">$1</span>");
