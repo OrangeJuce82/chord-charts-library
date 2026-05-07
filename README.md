@@ -1,4 +1,4 @@
-# 🎵 Chord Charts Library
+# 🎹 Chord Charts Library
 
 A clean, fast static web app to browse free chord charts scraped from the [iReal Pro community forum](https://forums.irealpro.com/).
 

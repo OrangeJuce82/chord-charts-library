@@ -97,21 +97,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .navbar__icon {
   font-size: 22px;
   line-height: 1;
-  filter: drop-shadow(0 0 6px var(--c-accent));
-  animation: pulse-icon 3s ease-in-out infinite;
-}
-
-@keyframes pulse-icon {
-  0%, 100% { filter: drop-shadow(0 0 6px var(--c-accent)); }
-  50%       { filter: drop-shadow(0 0 12px var(--c-accent)); }
+  filter: none;
 }
 
 .navbar__title {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: 15px;
+  font-size: 18px;
   letter-spacing: 0;
-  color: var(--c-text-muted);
+  color: #f0e6cf;
   white-space: nowrap;
 }
 
