@@ -675,6 +675,18 @@ input[type="range"] {
   white-space: nowrap;
 }
 
+.ireal-render-target irr-cell:nth-of-type(16n - 3) irr-comment,
+.ireal-render-target irr-cell:nth-of-type(16n - 2) irr-comment,
+.ireal-render-target irr-cell:nth-of-type(16n - 1) irr-comment,
+.ireal-render-target irr-cell:nth-of-type(16n) irr-comment {
+  right: 0;
+  left: auto;
+  top: 4.6em;
+  display: block;
+  overflow: hidden;
+  text-align: right;
+}
+
 .ireal-render-target irr-annot {
   font-size: .42em;
   line-height: 1;
