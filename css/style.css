@@ -109,6 +109,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   white-space: nowrap;
 }
 
+.navbar__version {
+  color: var(--c-accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
 .navbar__actions {
   display: flex;
   align-items: center;
@@ -156,12 +165,24 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ── 6. Hero ──────────────────────────────────────────────────── */
 .hero {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 18px;
   padding-bottom: 32px;
   border-bottom: 1px solid var(--c-border);
+}
+
+.hero__summary {
+  width: 100%;
+}
+
+.hero__summary::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.hero__text {
+  min-width: 0;
 }
 
 .hero__heading {
@@ -182,19 +203,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .hero__description {
   color: var(--c-text-muted);
   font-size: 13px;
-  max-width: 560px;
+  max-width: none;
   line-height: 1.7;
 }
 
 .hero__description strong { color: var(--c-text); font-weight: 500; }
 
 .hero__stats {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-  flex: 1 1 520px;
-  max-width: 720px;
+  float: right;
+  margin: 0 0 10px 24px;
 }
 
 .stat-badge {
@@ -214,7 +231,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .stat-badge__value {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 22px;
+  font-size: 16px;
   color: var(--c-accent);
   min-width: 40px;
   text-align: right;
@@ -229,7 +246,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .top-stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
 }
@@ -245,7 +262,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .top-stat__title {
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 10px;
   color: var(--c-text-muted);
   font-family: var(--font-display);
@@ -256,9 +274,39 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   text-transform: uppercase;
 }
 
-.top-stat__title i {
+.top-stat__heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.top-stat__heading i {
   color: var(--c-accent);
   font-size: 11px;
+}
+
+.top-stat__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-accent);
+  background: var(--c-surface-2);
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.top-stat__toggle:hover {
+  border-color: var(--c-accent-dim);
+  background: var(--c-border);
+}
+
+.top-stat__toggle i {
+  font-size: 10px;
 }
 
 .top-stat__list {
@@ -392,30 +440,34 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 @media (max-width: 900px) {
   .filter-grid { grid-template-columns: 1fr 1fr; }
-  .hero__stats {
-    align-items: stretch;
-    flex-basis: 100%;
-    max-width: none;
-  }
 }
 
 @media (max-width: 560px) {
   .filter-grid { grid-template-columns: 1fr; }
-  .top-stats { grid-template-columns: 1fr; }
-  .stat-badge { align-self: flex-start; }
   .top-stat-row {
-    grid-template-columns: 18px minmax(0, 1fr) 64px 48px;
+    grid-template-columns: 18px minmax(0, 1fr) 48px;
+  }
+  .top-stat-row__bar {
+    display: none;
   }
 }
 
 .filter-field__label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: .12em;
   color: var(--c-text-muted);
   margin-bottom: 6px;
+}
+
+.filter-field__label i {
+  color: var(--c-accent);
+  font-size: 11px;
+  letter-spacing: 0;
 }
 
 /* Text input */

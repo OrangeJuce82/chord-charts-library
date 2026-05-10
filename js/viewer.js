@@ -34,6 +34,25 @@ const setPageTitle = (title = 'Chart Detail') => {
   document.title = `${title} - Chord Charts Library`;
 };
 
+const goBackOrFallback = () => {
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+
+  window.location.href = 'index.html';
+};
+
+const bindHistoryBackLinks = () => {
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-history-back]');
+    if (!link) return;
+
+    event.preventDefault();
+    goBackOrFallback();
+  });
+};
+
 const formatTranspose = (value) => {
   if (value > 0) return `+${value}`;
   return String(value);
@@ -104,7 +123,7 @@ const renderError = (message) => {
         <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
         <h1>Chart unavailable</h1>
         <p>${esc(message)}</p>
-        <a href="index.html" class="viewer-action viewer-action--secondary">
+        <a href="index.html" class="viewer-action viewer-action--secondary" data-history-back>
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           Back to library
         </a>
@@ -119,7 +138,7 @@ const renderShell = () => {
   page.innerHTML = `
     <main class="viewer-shell">
       <section class="viewer-topbar" aria-label="Chart navigation">
-        <a href="index.html" class="viewer-back">
+        <a href="index.html" class="viewer-back" data-history-back>
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           Library
         </a>
@@ -326,6 +345,7 @@ const bindEvents = () => {
 
 const init = async () => {
   renderLoading();
+  bindHistoryBackLinks();
 
   btnRandomViewer?.addEventListener('click', async () => {
     btnRandomViewer.disabled = true;

@@ -15,6 +15,16 @@ export const TOP_STYLE_STATS = [
   { label: 'Up Tempo Swing', count: 1573 },
   { label: 'Ballad Even', count: 1376 },
   { label: 'Rock Pop', count: 1228 },
+  { label: 'Waltz', count: 1211 },
+  { label: 'Bluegrass', count: 1199 },
+  { label: 'Latin', count: 1125 },
+  { label: 'Worship', count: 1041 },
+  { label: 'Pop - Bluegrass', count: 1015 },
+  { label: 'Pop Ballad', count: 964 },
+  { label: 'Slow Swing', count: 829 },
+  { label: 'Pop Rock', count: 729 },
+  { label: 'Even 8ths', count: 621 },
+  { label: 'Funk', count: 592 },
 ];
 
 export const TOP_GROOVE_STATS = [
@@ -28,4 +38,14 @@ export const TOP_GROOVE_STATS = [
   { label: 'Jazz-Bossa Nova', count: 1179 },
   { label: 'Jazz-Medium Up Swing', count: 1153 },
   { label: 'Pop-Bluegrass', count: 1040 },
+  { label: 'Jazz-Gypsy Jazz', count: 926 },
+  { label: 'Jazz-Up Tempo Swing', count: 748 },
+  { label: 'Pop-Soul', count: 700 },
+  { label: 'Latin-Brazil: Bossa Electric', count: 584 },
+  { label: 'Jazz-Latin', count: 561 },
+  { label: 'Jazz-Swing Two/Four', count: 532 },
+  { label: 'Pop-Smooth', count: 514 },
+  { label: 'Pop-Rock 12/8', count: 506 },
+  { label: 'Jazz-Even 8ths', count: 506 },
+  { label: 'Latin-Cuba: Bolero', count: 499 },
 ];

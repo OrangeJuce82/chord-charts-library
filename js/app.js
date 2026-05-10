@@ -40,8 +40,11 @@ let isApplyingUrlState = false;
 let lastSearchUrl = '';
 let topStyleStats = TOP_STYLE_STATS;
 let topGrooveStats = TOP_GROOVE_STATS;
+let topStatsExpanded = false;
 
-const TOP_STATS_CACHE_KEY = 'chordCharts.topStats.v1';
+const TOP_STATS_LIMIT = 20;
+const TOP_STATS_COLLAPSED_LIMIT = 3;
+const TOP_STATS_CACHE_KEY = 'chordCharts.topStats.v2';
 const TOP_STATS_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 // ─── DOM references ───────────────────────────────────────────────────────────
@@ -56,6 +59,8 @@ const btnRandom      = document.getElementById('btn-random');
 const btnReset       = document.getElementById('btn-reset');
 const topStylesEl    = document.getElementById('top-styles');
 const topGroovesEl   = document.getElementById('top-grooves');
+const topStylesToggleEl = document.getElementById('top-styles-toggle');
+const topGroovesToggleEl = document.getElementById('top-grooves-toggle');
 
 // ─── Tag inputs ───────────────────────────────────────────────────────────────
 
@@ -176,9 +181,22 @@ const escapeHtml = (str) =>
   str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const renderTopStats = () => {
-  const renderChart = (container, items, type, activeValues) => {
+  const updateToggle = (button) => {
+    button.setAttribute('aria-expanded', topStatsExpanded ? 'true' : 'false');
+    button.title = topStatsExpanded ? 'Show fewer top items' : 'Show all top items';
+    button.innerHTML = `
+      <i class="fa-solid fa-chevron-${topStatsExpanded ? 'up' : 'down'}" aria-hidden="true"></i>
+    `;
+  };
+
+  updateToggle(topStylesToggleEl);
+  updateToggle(topGroovesToggleEl);
+
+  const renderChart = (container, items, type, activeValues, expanded) => {
     const max = Math.max(...items.map(item => item.count));
-    container.innerHTML = items.map((item, index) => {
+    const visibleItems = expanded ? items : items.slice(0, TOP_STATS_COLLAPSED_LIMIT);
+
+    container.innerHTML = visibleItems.map((item, index) => {
       const label = escapeHtml(item.label);
       const isActive = activeValues.includes(item.label);
       return `
@@ -211,8 +229,8 @@ const renderTopStats = () => {
     });
   };
 
-  renderChart(topStylesEl, topStyleStats, 'style', state.styles);
-  renderChart(topGroovesEl, topGrooveStats, 'groove', state.grooves);
+  renderChart(topStylesEl, topStyleStats, 'style', state.styles, topStatsExpanded);
+  renderChart(topGroovesEl, topGrooveStats, 'groove', state.grooves, topStatsExpanded);
 };
 
 const readTopStatsCache = (total) => {
@@ -258,7 +276,7 @@ const loadTopStats = async (total) => {
   }
 
   try {
-    const { styles, grooves } = await fetchTopCategoricalStats({ limit: 10, total });
+    const { styles, grooves } = await fetchTopCategoricalStats({ limit: TOP_STATS_LIMIT, total });
 
     if (styles.length) topStyleStats = styles;
     if (grooves.length) topGrooveStats = grooves;
@@ -400,6 +418,16 @@ const bindEvents = () => {
 
   // Reset button
   btnReset.addEventListener('click', resetFilters);
+
+  topStylesToggleEl.addEventListener('click', () => {
+    topStatsExpanded = !topStatsExpanded;
+    renderTopStats();
+  });
+
+  topGroovesToggleEl.addEventListener('click', () => {
+    topStatsExpanded = !topStatsExpanded;
+    renderTopStats();
+  });
 
   // Browser back/forward restores shared search URLs.
   window.addEventListener('popstate', async () => {
