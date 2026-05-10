@@ -14,6 +14,8 @@ import {
 
 const page = document.getElementById('page-container');
 const btnRandomViewer = document.getElementById('btn-random-viewer');
+const CHART_BASE_WIDTH = 760;
+const CHART_FIT_BREAKPOINT = 1080;
 
 const state = {
   chart: null,
@@ -35,6 +37,30 @@ const setPageTitle = (title = 'Chart Detail') => {
 const formatTranspose = (value) => {
   if (value > 0) return `+${value}`;
   return String(value);
+};
+
+const getResponsiveChartScale = () => {
+  const userScale = state.fontScale / 100;
+  const paper = document.querySelector('.lead-sheet-paper');
+
+  if (!paper || window.innerWidth > CHART_FIT_BREAKPOINT) {
+    return userScale;
+  }
+
+  const style = window.getComputedStyle(paper);
+  const horizontalPadding =
+    parseFloat(style.paddingLeft || 0) + parseFloat(style.paddingRight || 0);
+  const contentWidth = Math.max(0, paper.clientWidth - horizontalPadding);
+  const fitScale = Math.min(1, contentWidth / CHART_BASE_WIDTH);
+
+  return userScale * fitScale;
+};
+
+const updateChartScale = () => {
+  const paper = document.querySelector('.lead-sheet-paper');
+  if (!paper) return;
+
+  paper.style.setProperty('--chart-scale', getResponsiveChartScale().toFixed(3));
 };
 
 const makeMetaItems = (chart, renderedSong) => [
@@ -219,8 +245,7 @@ const updateControls = () => {
 
 const refreshChart = () => {
   const target = document.getElementById('chart-render-target');
-  document.querySelector('.lead-sheet-paper')
-    .style.setProperty('--chart-scale', `${state.fontScale / 100}`);
+  updateChartScale();
 
   state.renderedSong = renderIRealSong({
     song: state.parsedSong,
@@ -296,6 +321,7 @@ const bindEvents = () => {
   document.getElementById('btn-copy-url').addEventListener('click', async () => {
     await navigator.clipboard.writeText(state.chart.url || '');
   });
+  window.addEventListener('resize', updateChartScale);
 };
 
 const init = async () => {
