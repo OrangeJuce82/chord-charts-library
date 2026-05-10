@@ -4,40 +4,64 @@
 
 # Chord Charts Library
 
-A clean, fast static web app to browse free chord charts scraped from the [iReal Pro community forum](https://forums.irealpro.com/).
+A static web app to search, filter, preview, and open chord charts sourced from the [iReal Pro community forum](https://forums.irealpro.com/).
 
-**🚀 Live demo →** <https://OrangeJuce82.github.io/chord-charts-library/>
+**Live demo:** <https://OrangeJuce82.github.io/chord-charts-library/>
 
 ---
 
 ## Features
 
-- 🔍 **Live search** — filters update results instantly as you type
-- 🏷️ **Tag filters** with autocomplete for Composer, Groove and Style
-- 📊 **Sortable table** — click any column header
-- 🎲 **Random chart** button — opens a random chart directly in iReal Pro
-- 🎨 **Clickable tags** in the table — click to add to active filters
-- 🎼 **MusicXML export** — convert any chart to MusicXML on the fly and download it
-- 📱 Responsive layout
+- Instant title search with debounced network requests.
+- Tag filters for `composer`, `groove`, and `style`, with autocomplete.
+- Shareable filter URLs: search text, tags, sort order, and current page are preserved in the URL.
+- Paginated table sortable by title, composer, groove, style, key, and BPM.
+- Clickable tags in the result table for quick filtering.
+- Random chart button that opens a random chart in the built-in viewer.
+- Clickable "Top styles" and "Top grooves" stats, with local caching.
+- Direct opening in iReal Pro through `irealb://` and `irealbook://` links.
+- MusicXML export from every table row.
+- Detailed chart viewer with visual rendering, transposition, adjustable chart size, minor chord notation modes, B/H notation, sign/comment highlighting, iReal URL copy, print support, and decoded iReal data display.
+- Installable PWA with manifest, icons, and a service worker caching the app shell, fonts, assets, and selected API responses.
+- Responsive interface with no frontend framework and no build step.
+- Python tools to scrape iReal links from the forum and convert iReal URLs into CSV data.
 
 ---
 
-## Tech stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| UI | Vanilla JS (ES Modules) · HTML5 · CSS3 |
-| Data | [Supabase](https://supabase.com/) (PostgREST API) |
-| Fonts | DM Sans · DM Mono (Google Fonts) |
-| Icons | Font Awesome 6 |
-| MusicXML | [ireal-musicxml](https://github.com/infojunkie/ireal-musicxml) (loaded on demand via esm.sh) |
+| Frontend | HTML5, CSS3, vanilla JavaScript ES modules |
+| Data | [Supabase](https://supabase.com/) through the PostgREST API, without the Supabase SDK |
+| iReal rendering | [`ireal-renderer`](https://github.com/daumling/ireal-renderer), vendored in `js/vendor/ireal-renderer/` |
+| MusicXML export | [`ireal-musicxml`](https://github.com/infojunkie/ireal-musicxml), lazy-loaded through `esm.sh` |
+| PWA | Web App Manifest, Service Worker, Cache API |
+| UI | Font Awesome 6, DM Sans, DM Mono |
+| Chart rendering fonts | Helvetica, Myriad Pro, Bravura |
+| Scraping | [Scrapy](https://scrapy.org/) |
+| CLI | [Typer](https://typer.tiangolo.com/) and Rich |
+| Python quality | Ruff, configured in `pyproject.toml` |
 | Hosting | GitHub Pages |
 
-No build step. No framework. No dependencies to install.
+The web app has no build step and no frontend framework dependency.
 
 ---
 
-## Getting started
+## Libraries and References
+
+- [iReal Pro Community Forum](https://forums.irealpro.com/): source of the chart links.
+- [`ireal-renderer`](https://github.com/daumling/ireal-renderer): used for browser-side iReal URL reading and chart rendering.
+- [`ireal-musicxml`](https://github.com/infojunkie/ireal-musicxml): used for client-side iReal to MusicXML conversion.
+- [`ireal-reader`](https://github.com/pianosnake/ireal-reader): reference for reading the iReal format.
+- [`accompaniser`](https://github.com/ironss/accompaniser): reference for `irealb://` unscrambling details.
+- Supabase/PostgREST: static-app friendly storage, filtering, sorting, pagination, and aggregation.
+- Scrapy: forum crawling and `irealb://` link extraction.
+- Typer/Rich: local CLI for turning iReal URL lists into CSV files with a terminal preview.
+
+---
+
+## Getting Started
 
 ### 1. Clone the repo
 
@@ -48,36 +72,36 @@ cd chord-charts-library
 
 ### 2. Configure Supabase
 
-Edit **`js/config.js`** and fill in your project credentials:
+Edit `js/config.js`:
 
 ```js
-export const SUPABASE_URL      = 'https://YOUR_PROJECT_REF.supabase.co';
+export const SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';
 export const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+export const TABLE_NAME = 'ireal_pro_charts';
 ```
 
-> ⚠️ These are your **anon (public)** keys — they are safe to expose in a static site.
-> Make sure your Supabase table has **Row Level Security** enabled with a policy allowing anonymous `SELECT`.
+These are public `anon`/publishable keys. They are safe to expose in a static app as long as the Supabase table uses Row Level Security with a policy that only allows anonymous `SELECT`.
 
-### 3. Supabase table schema
+### 3. Expected Table Schema
 
-The app expects a table named `ireal_pro_charts` with the following columns:
+The default table name is `ireal_pro_charts`.
 
-| Column | Type | Description |
+| Column | Suggested type | Description |
 |---|---|---|
-| `id` | int8 / uuid | Primary key |
-| `url` | text | iReal Pro deep link (`irealb://` or `irealbook://`) |
+| `id` | uuid | Unique chart identifier |
+| `url` | text | iReal link, `irealb://` or `irealbook://` |
 | `title` | text | Chart title |
-| `composer` | text | Composer name |
-| `style` | text | Musical style |
-| `key` | text | Musical key |
-| `transpose` | int4 | Semitones to transpose |
-| `groove` | text | Groove type |
-| `bpm` | int4 | Beats per minute |
-| `repeats` | int4 | Number of repeats |
+| `composer` | text | Composer |
+| `style` | text | Style |
+| `key` | text | Key |
+| `transpose` | int4 | Default transposition |
+| `groove` | text | Groove |
+| `bpm` | int4 | Tempo |
+| `repeats` | int4 | Repeat count |
 
-### 4. Run locally
+### 4. Run Locally
 
-Because the app uses ES Modules, you need a local HTTP server (not `file://`):
+ES modules must be served over HTTP, not opened with `file://`.
 
 ```bash
 # Python 3
@@ -87,50 +111,72 @@ python -m http.server 8080
 npx serve .
 ```
 
-Then open `http://localhost:8080`.
-
-### 5. Deploy to GitHub Pages
- 
-Push to your repo and enable **GitHub Pages** from `Settings → Pages → Source: main branch / root`.
-
-The site requires no build step — it deploys as-is.
+Then open <http://localhost:8080>.
 
 ---
 
-## MusicXML export
+## Chart Viewer
 
-Each row in the table has an **XML** button in the rightmost column. Clicking it:
+The eye button opens `view.html?id=...`.
 
-1. Lazy-loads the [`ireal-musicxml`](https://github.com/infojunkie/ireal-musicxml) library from `esm.sh` (only on first use)
-2. Parses the chart's `irealb://` URL client-side — no server involved
-3. Generates a MusicXML lead sheet and triggers a browser download of the `.xml` file
+The viewer supports:
 
-The resulting file can be opened in any MusicXML-compatible application: MuseScore, Sibelius, Finale, OpenSheetMusicDisplay, etc.
-
-> **Note:** conversion quality depends on how well the source chart is encoded. Complex or non-standard charts may produce imperfect results.
+- visual chart rendering with `ireal-renderer`;
+- transposition from -12 to +12 semitones;
+- adjustable chart size;
+- minor chord notation modes;
+- B/H notation;
+- sign and comment highlighting;
+- decoded iReal data display;
+- source URL copy;
+- print support;
+- back navigation to the library while preserving browser history.
 
 ---
 
-## Project structure
+## Project Structure
 
-```
+```text
 chord-charts-library/
-├── index.html          # Main page
-├── view.html           # Chart detail page (stub for future use)
+├── index.html                  # Library, search, filters, stats, table
+├── view.html                   # Detailed chart viewer
+├── manifest.webmanifest        # PWA configuration
+├── sw.js                       # Service worker and cache strategy
 ├── css/
-│   └── style.css       # All styles (CSS custom properties + dark theme)
-└── js/
-    ├── config.js       # ← Edit this with your Supabase keys
-    ├── api.js          # Supabase REST API calls
-    ├── filters.js      # TagInput component + debounce utility
-    ├── table.js        # Table & pagination rendering + MusicXML conversion
-    └── app.js          # Main orchestrator
+│   ├── style.css               # Global styles
+│   ├── view.css                # Viewer styles
+│   ├── fonts/                  # Fonts used by the chart renderer
+│   └── img/                    # SVG assets used by the iReal renderer
+├── js/
+│   ├── api.js                  # Supabase/PostgREST calls
+│   ├── app.js                  # State, filters, sorting, pagination, stats
+│   ├── config.js               # Supabase configuration
+│   ├── filters.js              # TagInput and debounce helper
+│   ├── ireal-chart.js          # Helpers around iReal parsing/rendering
+│   ├── pwa.js                  # Service worker registration
+│   ├── stats.js                # Stats fallback data
+│   ├── table.js                # Table rendering and MusicXML export
+│   ├── viewer.js               # Viewer controller
+│   └── vendor/ireal-renderer/  # Vendored iReal libraries
+├── scraper/                    # Scrapy spider
+├── cli/                        # iReal parser and CSV export CLI
+└── data/                       # Local data exports
 ```
+
+---
+
+## Deployment
+
+Push the repository to GitHub, then enable GitHub Pages:
+
+`Settings -> Pages -> Source: main branch / root`
+
+The site is deployed as-is, with no compilation step.
 
 ---
 
 ## License
 
-[MIT](LICENSE) — do whatever you want, attribution appreciated.
+[MIT](LICENSE)
 
 Charts belong to their respective authors on the iReal Pro forum.
