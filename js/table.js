@@ -127,6 +127,16 @@ const buildRow = (chart, { onTitleClick, onComposerClick, onGrooveClick, onStyle
   const scheme = getScheme(chart.url);
 
   tr.innerHTML = `
+    <!-- View (sticky eye icon) -->
+    <td class="col-view">
+      <a href="view?id=${esc(chart.id)}"
+         class="view-btn"
+         title="View chart details"
+         aria-label="View chart details for ${esc(chart.title)}">
+        <i class="fa-regular fa-eye" aria-hidden="true"></i>
+      </a>
+    </td>
+
     <!-- Title -->
     <td class="col-title">
       <button class="cell-link js-title" title="Search: ${esc(chart.title)}">
@@ -173,16 +183,6 @@ const buildRow = (chart, { onTitleClick, onComposerClick, onGrooveClick, onStyle
              ${schemeLabel(scheme)}
            </a>`
         : '<span style="opacity:.3">—</span>'}
-    </td>
-
-    <!-- View (eye icon → future detail page) -->
-    <td class="col-view">
-      <a href="view?id=${esc(chart.id)}"
-         class="view-btn"
-         title="View chart details"
-         aria-label="View chart details for ${esc(chart.title)}">
-        <i class="fa-regular fa-eye" aria-hidden="true"></i>
-      </a>
     </td>
 
     <!-- MusicXML download -->
