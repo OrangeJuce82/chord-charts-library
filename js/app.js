@@ -7,7 +7,7 @@
  * State lives here; child modules are stateless and receive their data.
  */
 
-import { fetchCharts, fetchTotalCount, fetchRandomChart } from './api.js';
+import { fetchCharts, fetchTotalCount, fetchRandomChart, fetchTopCategoricalStats } from './api.js';
 import { TagInput, debounce }                             from './filters.js';
 import {
   renderRows,
@@ -16,6 +16,7 @@ import {
   renderPagination,
 }                                                         from './table.js';
 import { PAGE_SIZE, DEBOUNCE_MS }                         from './config.js';
+import { TOP_GROOVE_STATS, TOP_STYLE_STATS }              from './stats.js';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,11 @@ const SORT_DIRECTIONS = ['asc', 'desc'];
 let state = { ...DEFAULT_STATE };
 let isApplyingUrlState = false;
 let lastSearchUrl = '';
+let topStyleStats = TOP_STYLE_STATS;
+let topGrooveStats = TOP_GROOVE_STATS;
+
+const TOP_STATS_CACHE_KEY = 'chordCharts.topStats.v1';
+const TOP_STATS_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 // ─── DOM references ───────────────────────────────────────────────────────────
 
@@ -48,6 +54,8 @@ const paginationEl   = document.getElementById('pagination');
 const titleInput     = document.getElementById('filter-title');
 const btnRandom      = document.getElementById('btn-random');
 const btnReset       = document.getElementById('btn-reset');
+const topStylesEl    = document.getElementById('top-styles');
+const topGroovesEl   = document.getElementById('top-grooves');
 
 // ─── Tag inputs ───────────────────────────────────────────────────────────────
 
@@ -162,6 +170,105 @@ const applyStateToControls = () => {
   styleInput.setTags(state.styles, { notify: false });
 };
 
+// ─── Top stats charts ────────────────────────────────────────────────────────
+
+const escapeHtml = (str) =>
+  str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const renderTopStats = () => {
+  const renderChart = (container, items, type, activeValues) => {
+    const max = Math.max(...items.map(item => item.count));
+    container.innerHTML = items.map((item, index) => {
+      const label = escapeHtml(item.label);
+      const isActive = activeValues.includes(item.label);
+      return `
+        <button
+          class="top-stat-row top-stat-row--${type}${isActive ? ' active' : ''}"
+          type="button"
+          data-value="${label}"
+          title="Filter by ${type}: ${label}"
+          aria-pressed="${isActive ? 'true' : 'false'}"
+        >
+          <span class="top-stat-row__rank">${index + 1}</span>
+          <span class="top-stat-row__label">${label}</span>
+          <span class="top-stat-row__bar" aria-hidden="true">
+            <span style="width: ${(item.count / max) * 100}%"></span>
+          </span>
+          <span class="top-stat-row__count">${item.count.toLocaleString()}</span>
+        </button>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.top-stat-row').forEach((button) => {
+      button.addEventListener('click', () => {
+        state.page = 0;
+        if (type === 'style') {
+          styleInput.setTags([button.dataset.value]);
+        } else {
+          grooveInput.setTags([button.dataset.value]);
+        }
+      });
+    });
+  };
+
+  renderChart(topStylesEl, topStyleStats, 'style', state.styles);
+  renderChart(topGroovesEl, topGrooveStats, 'groove', state.grooves);
+};
+
+const readTopStatsCache = (total) => {
+  try {
+    const cached = JSON.parse(localStorage.getItem(TOP_STATS_CACHE_KEY) || 'null');
+    if (
+      cached &&
+      cached.total === total &&
+      Date.now() - cached.savedAt < TOP_STATS_CACHE_TTL &&
+      Array.isArray(cached.styles) &&
+      Array.isArray(cached.grooves)
+    ) {
+      return cached;
+    }
+  } catch (err) {
+    console.warn('[app] top stats cache ignored', err);
+  }
+  return null;
+};
+
+const writeTopStatsCache = (total, styles, grooves) => {
+  try {
+    localStorage.setItem(TOP_STATS_CACHE_KEY, JSON.stringify({
+      total,
+      styles,
+      grooves,
+      savedAt: Date.now(),
+    }));
+  } catch (err) {
+    console.warn('[app] top stats cache write failed', err);
+  }
+};
+
+const loadTopStats = async (total) => {
+  renderTopStats();
+
+  const cached = readTopStatsCache(total);
+  if (cached) {
+    topStyleStats = cached.styles;
+    topGrooveStats = cached.grooves;
+    renderTopStats();
+    return;
+  }
+
+  try {
+    const { styles, grooves } = await fetchTopCategoricalStats({ limit: 10, total });
+
+    if (styles.length) topStyleStats = styles;
+    if (grooves.length) topGrooveStats = grooves;
+    writeTopStatsCache(total, topStyleStats, topGrooveStats);
+    renderTopStats();
+  } catch (err) {
+    console.warn('[app] top stats fallback used', err);
+  }
+};
+
 // ─── Search ───────────────────────────────────────────────────────────────────
 
 /**
@@ -169,6 +276,7 @@ const applyStateToControls = () => {
  */
 const search = async () => {
   syncUrlFromState();
+  renderTopStats();
 
   showLoading(tbody);
   updateSortHeaders(table, state.sortCol, state.sortDir);
@@ -311,19 +419,22 @@ const bindEvents = () => {
  */
 const init = async () => {
   // Fetch and display total chart count in the hero
-  fetchTotalCount()
+  const totalCountPromise = fetchTotalCount()
     .then((count) => {
       totalCountEl.textContent = count.toLocaleString();
+      return count;
     })
     .catch((err) => {
       console.error('[app] count error', err);
       totalCountEl.textContent = '?';
+      return null;
     });
 
   initTagInputs();
   state = readStateFromUrl();
   applyStateToControls();
   bindEvents();
+  totalCountPromise.then(count => loadTopStats(count));
 
   // Initial data load
   await search();

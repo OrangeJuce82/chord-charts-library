@@ -69,10 +69,114 @@ export const fetchTotalCount = async () => {
 };
 
 /**
+ * Fetch the most frequent non-empty values for a categorical column.
+ * Uses PostgREST aggregation so the browser receives only the top rows,
+ * not the full songs table.
+ * @param {'style'|'groove'} column
+ * @param {number} [limit]
+ * @returns {Promise<{ label: string, count: number }[]>}
+ */
+export const fetchTopColumnStats = async (column, limit = 10) => {
+  if (!['style', 'groove'].includes(column)) {
+    throw new Error(`Unsupported stats column: ${column}`);
+  }
+
+  const url = new URL(tableUrl());
+  url.searchParams.set('select', `${column},count()`);
+  url.searchParams.set(column, 'not.is.null');
+  url.searchParams.append(column, 'neq.');
+  url.searchParams.set('order', 'count.desc');
+  url.searchParams.set('limit', String(limit));
+
+  const data = await apiFetch(url.toString());
+  return data
+    .map(row => ({
+      label: String(row[column] ?? '').trim(),
+      count: Number(row.count ?? 0),
+    }))
+    .filter(item => item.label && Number.isFinite(item.count) && item.count > 0);
+};
+
+const topFromCounts = (counts, limit) =>
+  [...counts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    .slice(0, limit);
+
+/**
+ * Fetch top style and groove stats dynamically.
+ * First tries server-side aggregation. If Supabase/PostgREST aggregation is
+ * disabled, falls back to paginated reads of only the needed columns.
+ * @param {object} [params]
+ * @param {number} [params.limit]
+ * @param {number} [params.total]
+ * @param {number} [params.pageSize]
+ * @returns {Promise<{ styles: { label: string, count: number }[], grooves: { label: string, count: number }[] }>}
+ */
+export const fetchTopCategoricalStats = async ({ limit = 10, total = null, pageSize = 1000 } = {}) => {
+  try {
+    const [styles, grooves] = await Promise.all([
+      fetchTopColumnStats('style', limit),
+      fetchTopColumnStats('groove', limit),
+    ]);
+    return { styles, grooves };
+  } catch (err) {
+    console.info('[api] aggregate stats unavailable, scanning style/groove columns', err.message || err);
+  }
+
+  const rowCount = Number.isFinite(total) && total > 0 ? total : await fetchTotalCount();
+  const styleCounts = new Map();
+  const grooveCounts = new Map();
+
+  const countValue = (counts, value) => {
+    const label = String(value ?? '').trim();
+    if (!label) return;
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  };
+
+  const fetchRange = async (from) => {
+    const to = Math.min(from + pageSize - 1, rowCount - 1);
+    const url = new URL(tableUrl());
+    url.searchParams.set('select', 'style,groove');
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        ...headers(),
+        Range: `${from}-${to}`,
+        'Range-Unit': 'items',
+      },
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`fetchTopCategoricalStats range ${from}-${to} failed ${response.status}: ${body}`);
+    }
+
+    return response.json();
+  };
+
+  const ranges = [];
+  for (let from = 0; from < rowCount; from += pageSize) ranges.push(from);
+
+  const concurrency = 4;
+  for (let i = 0; i < ranges.length; i += concurrency) {
+    const batch = await Promise.all(ranges.slice(i, i + concurrency).map(fetchRange));
+    batch.flat().forEach((row) => {
+      countValue(styleCounts, row.style);
+      countValue(grooveCounts, row.groove);
+    });
+  }
+
+  return {
+    styles: topFromCounts(styleCounts, limit),
+    grooves: topFromCounts(grooveCounts, limit),
+  };
+};
+
+/**
  * Fetch a paginated, filtered, sorted list of charts.
- * Composer/groove/style now support partial (ilike) matching when a raw text
- * search string is provided via composerText / grooveText / styleText,
- * in addition to the exact-match tag arrays.
+ * Composer free text supports partial matching via composerText.
+ * Confirmed composer/groove/style tags are exact-match filters.
  * @param {object} params
  * @param {string}   [params.title]      - Partial title search (ilike)
  * @param {string[]} [params.composers]  - Exact composer matches (OR)
@@ -115,7 +219,8 @@ export const fetchCharts = async ({
   // For composer: combine exact tags + optional ilike on each word of composerText
   const composerClauses = [];
 
-  // Exact-match tags selected via autocomplete
+  // Confirmed composer tags still use partial matching to preserve the
+  // existing composer search behavior for aliases and compound credits.
   composers.forEach(v => composerClauses.push(`composer.ilike.*${v}*`));
 
   // Free-text: split on spaces, every word must appear (AND across words → separate ilike per word)
@@ -132,15 +237,17 @@ export const fetchCharts = async ({
     url.searchParams.append('or', `(${composerClauses.join(',')})`);
   }
 
-  // Groove / style exact tags
-  const buildOrFilter = (col, values) => {
+  // Groove / style exact tags. This must stay exact so top-stat counts match
+  // the result count when users click a style or groove.
+  const quoteInValue = (value) => `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+
+  const buildExactFilter = (col, values) => {
     if (!values.length) return;
-    const clause = values.map((v) => `${col}.ilike.*${v}*`).join(',');
-    url.searchParams.append('or', `(${clause})`);
+    url.searchParams.set(col, `in.(${values.map(quoteInValue).join(',')})`);
   };
 
-  buildOrFilter('groove', grooves);
-  buildOrFilter('style',  styles);
+  buildExactFilter('groove', grooves);
+  buildExactFilter('style',  styles);
 
   // Sorting
   url.searchParams.set('order', `${sortCol}.${sortDir}`);
