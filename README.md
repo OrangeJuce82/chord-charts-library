@@ -1,4 +1,8 @@
-# 🎹 Chord Charts Library
+<p align="center">
+  <img src="img/icons/icon-192.png" width="120" height="120" alt="Chord Charts Library icon">
+</p>
+
+# Chord Charts Library
 
 A clean, fast static web app to browse free chord charts scraped from the [iReal Pro community forum](https://forums.irealpro.com/).
 
