@@ -69,13 +69,30 @@ export class TagInput {
   }
 
   /** Clear all tags. */
-  clear() {
+  clear({ notify = true } = {}) {
     this.tags = [];
     this.input.value = '';
     this._renderTags();
     this._closeSuggestions();
-    if (this.onInputChange) this.onInputChange('');
-    this.onChange(this.tags);
+    if (notify && this.onInputChange) this.onInputChange('');
+    if (notify) this.onChange(this.tags);
+  }
+
+  /** Replace tags programmatically. */
+  setTags(tags, { notify = true } = {}) {
+    this.tags = [...new Set(tags.map(tag => tag.trim()).filter(Boolean))];
+    this.input.value = '';
+    this._renderTags();
+    this._closeSuggestions();
+    if (notify && this.onInputChange) this.onInputChange('');
+    if (notify) this.onChange(this.tags);
+  }
+
+  /** Replace the current free-text value programmatically. */
+  setText(text, { notify = true } = {}) {
+    this.input.value = text;
+    this._closeSuggestions();
+    if (notify && this.onInputChange) this.onInputChange(text);
   }
 
   // ── Private ─────────────────────────────────────────────────────────────

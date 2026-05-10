@@ -19,8 +19,7 @@ import { PAGE_SIZE, DEBOUNCE_MS }                         from './config.js';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
-/** @type {{ title: string, composers: string[], grooves: string[], styles: string[], sortCol: string, sortDir: string, page: number }} */
-let state = {
+const DEFAULT_STATE = {
   title:        '',
   composers:    [],   // confirmed tags
   composerText: '',   // live typed text (partial search)
@@ -30,6 +29,14 @@ let state = {
   sortDir:      'asc',
   page:         0,
 };
+
+const SORT_COLUMNS = ['title', 'composer', 'groove', 'style', 'key', 'bpm'];
+const SORT_DIRECTIONS = ['asc', 'desc'];
+
+/** @type {{ title: string, composers: string[], composerText: string, grooves: string[], styles: string[], sortCol: string, sortDir: string, page: number }} */
+let state = { ...DEFAULT_STATE };
+let isApplyingUrlState = false;
+let lastSearchUrl = '';
 
 // ─── DOM references ───────────────────────────────────────────────────────────
 
@@ -89,12 +96,80 @@ const initTagInputs = () => {
   });
 };
 
+// ─── URL state ───────────────────────────────────────────────────────────────
+
+const uniqueValues = (values) => [...new Set(values.map(v => v.trim()).filter(Boolean))];
+
+const parsePage = (value) => {
+  const page = Number.parseInt(value ?? '', 10);
+  return Number.isFinite(page) && page > 1 ? page - 1 : 0;
+};
+
+const readStateFromUrl = () => {
+  const params = new URLSearchParams(window.location.search);
+  const sortCol = params.get('sort') || DEFAULT_STATE.sortCol;
+  const sortDir = params.get('dir') || DEFAULT_STATE.sortDir;
+
+  return {
+    ...DEFAULT_STATE,
+    title:        params.get('title') || '',
+    composers:    uniqueValues(params.getAll('composer')),
+    composerText: params.get('composerText') || '',
+    grooves:      uniqueValues(params.getAll('groove')),
+    styles:       uniqueValues(params.getAll('style')),
+    sortCol:      SORT_COLUMNS.includes(sortCol) ? sortCol : DEFAULT_STATE.sortCol,
+    sortDir:      SORT_DIRECTIONS.includes(sortDir) ? sortDir : DEFAULT_STATE.sortDir,
+    page:         parsePage(params.get('page')),
+  };
+};
+
+const buildSearchUrl = () => {
+  const params = new URLSearchParams();
+
+  if (state.title) params.set('title', state.title);
+  state.composers.forEach(composer => params.append('composer', composer));
+  if (state.composerText) params.set('composerText', state.composerText);
+  state.grooves.forEach(groove => params.append('groove', groove));
+  state.styles.forEach(style => params.append('style', style));
+  if (state.sortCol !== DEFAULT_STATE.sortCol) params.set('sort', state.sortCol);
+  if (state.sortDir !== DEFAULT_STATE.sortDir) params.set('dir', state.sortDir);
+  if (state.page > 0) params.set('page', String(state.page + 1));
+
+  const query = params.toString();
+  return `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+};
+
+const syncUrlFromState = () => {
+  if (isApplyingUrlState) return;
+
+  const nextUrl = buildSearchUrl();
+  if (nextUrl === lastSearchUrl) return;
+
+  if (!lastSearchUrl) {
+    window.history.replaceState(null, '', nextUrl);
+  } else {
+    window.history.pushState(null, '', nextUrl);
+  }
+
+  lastSearchUrl = nextUrl;
+};
+
+const applyStateToControls = () => {
+  titleInput.value = state.title;
+  composerInput.setTags(state.composers, { notify: false });
+  composerInput.setText(state.composerText, { notify: false });
+  grooveInput.setTags(state.grooves, { notify: false });
+  styleInput.setTags(state.styles, { notify: false });
+};
+
 // ─── Search ───────────────────────────────────────────────────────────────────
 
 /**
  * Main search function — reads state, fetches from API, renders results.
  */
 const search = async () => {
+  syncUrlFromState();
+
   showLoading(tbody);
   updateSortHeaders(table, state.sortCol, state.sortDir);
   paginationEl.innerHTML = '';
@@ -161,9 +236,9 @@ const setTitleFilter = (title) => {
 const resetFilters = () => {
   state = { ...state, title: '', composers: [], composerText: '', grooves: [], styles: [], page: 0 };
   titleInput.value = '';
-  composerInput.clear();
-  grooveInput.clear();
-  styleInput.clear();
+  composerInput.clear({ notify: false });
+  grooveInput.clear({ notify: false });
+  styleInput.clear({ notify: false });
   search();
 };
 
@@ -217,6 +292,16 @@ const bindEvents = () => {
 
   // Reset button
   btnReset.addEventListener('click', resetFilters);
+
+  // Browser back/forward restores shared search URLs.
+  window.addEventListener('popstate', async () => {
+    isApplyingUrlState = true;
+    state = readStateFromUrl();
+    applyStateToControls();
+    await search();
+    lastSearchUrl = buildSearchUrl();
+    isApplyingUrlState = false;
+  });
 };
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -236,6 +321,8 @@ const init = async () => {
     });
 
   initTagInputs();
+  state = readStateFromUrl();
+  applyStateToControls();
   bindEvents();
 
   // Initial data load
