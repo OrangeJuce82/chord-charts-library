@@ -903,6 +903,29 @@ input[type="range"] {
   .viewer-topbar__actions {
     flex-wrap: wrap;
   }
+
+  .lead-sheet-paper {
+    padding: clamp(14px, 3vw, 28px);
+    overflow: hidden;
+  }
+
+  .lead-sheet-header,
+  .ireal-render-target irr-chords {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ireal-render-target irr-chords {
+    --chart-cell-min-width: 0;
+  }
+
+  .ireal-render-target irr-cell {
+    min-width: 0;
+  }
+
+  .lead-sheet-subhead {
+    gap: 10px;
+  }
 }
 
 @page {

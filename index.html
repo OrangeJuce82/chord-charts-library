@@ -28,6 +28,7 @@
     <div class="navbar__brand">
       <span class="navbar__icon" aria-hidden="true">🎹</span>
       <span class="navbar__title">Chord Charts Library</span>
+      <span class="navbar__version">v0.1.0</span>
     </div>
 
     <div class="navbar__actions">
@@ -61,22 +62,65 @@
 
     <!-- Hero / project description -->
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero__text">
-        <h1 id="hero-title" class="hero__heading">
-          Free Jazz &amp; Standards Charts
-        </h1>
-        <p class="hero__description">
-          A community-sourced collection of chord charts scraped from the
-          <a href="https://forums.irealpro.com/" target="_blank" rel="noopener noreferrer">iReal Pro forum</a>.
-          Open directly in <strong>iReal Pro</strong> with one click.
-        </p>
+      <div class="hero__summary">
+        <div class="hero__stats">
+          <span class="stat-badge">
+            <i class="fa-solid fa-music" aria-hidden="true"></i>
+            <span id="total-count" class="stat-badge__value">—</span>
+            <span class="stat-badge__label">charts available</span>
+          </span>
+        </div>
+        <div class="hero__text">
+          <h1 id="hero-title" class="hero__heading">
+            Search, preview, and open iReal Pro charts
+          </h1>
+          <p class="hero__description">
+            Filter the scraped
+            <a href="https://forums.irealpro.com/" target="_blank" rel="noopener noreferrer">iReal Pro forum</a>
+            library by title, composer, style, or groove. Use the eye button to open the chart inside this app;
+            use the iRealB/iRealBook button to choose the iReal format and open it in <strong>iReal Pro</strong>.
+          </p>
+        </div>
       </div>
-      <div class="hero__stats">
-        <span class="stat-badge">
-          <i class="fa-solid fa-music" aria-hidden="true"></i>
-          <span id="total-count" class="stat-badge__value">—</span>
-          <span class="stat-badge__label">charts available</span>
-        </span>
+      <div class="top-stats" aria-label="Most common styles and grooves">
+        <section class="top-stat" aria-labelledby="top-styles-title">
+          <h2 id="top-styles-title" class="top-stat__title">
+            <span class="top-stat__heading">
+              <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+              Top styles
+            </span>
+            <button
+              id="top-styles-toggle"
+              class="top-stat__toggle"
+              type="button"
+              aria-controls="top-styles"
+              aria-expanded="false"
+              title="Show all top styles"
+            >
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+          </h2>
+          <div id="top-styles" class="top-stat__list"></div>
+        </section>
+        <section class="top-stat" aria-labelledby="top-grooves-title">
+          <h2 id="top-grooves-title" class="top-stat__title">
+            <span class="top-stat__heading">
+              <i class="fa-solid fa-drum" aria-hidden="true"></i>
+              Top grooves
+            </span>
+            <button
+              id="top-grooves-toggle"
+              class="top-stat__toggle"
+              type="button"
+              aria-controls="top-grooves"
+              aria-expanded="false"
+              title="Show all top grooves"
+            >
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+          </h2>
+          <div id="top-grooves" class="top-stat__list"></div>
+        </section>
       </div>
     </section>
 
@@ -95,7 +139,10 @@
       <div class="filter-grid">
         <!-- Title text search -->
         <div class="filter-field">
-          <label class="filter-field__label" for="filter-title">Title</label>
+          <label class="filter-field__label" for="filter-title">
+            <i class="fa-solid fa-heading" aria-hidden="true"></i>
+            Title
+          </label>
           <div class="input-wrapper">
             <i class="fa-solid fa-magnifying-glass input-icon" aria-hidden="true"></i>
             <input
@@ -111,7 +158,10 @@
 
         <!-- Composer tag input -->
         <div class="filter-field">
-          <label class="filter-field__label" for="filter-composer">Composer</label>
+          <label class="filter-field__label" for="filter-composer">
+            <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
+            Composer
+          </label>
           <div class="tag-input-wrapper" id="composer-wrapper">
             <div class="tag-input__tags" id="composer-tags" aria-live="polite"></div>
             <input
@@ -130,7 +180,10 @@
 
         <!-- Groove tag input -->
         <div class="filter-field">
-          <label class="filter-field__label" for="filter-groove">Groove</label>
+          <label class="filter-field__label" for="filter-groove">
+            <i class="fa-solid fa-drum" aria-hidden="true"></i>
+            Groove
+          </label>
           <div class="tag-input-wrapper" id="groove-wrapper">
             <div class="tag-input__tags" id="groove-tags" aria-live="polite"></div>
             <input
@@ -149,7 +202,10 @@
 
         <!-- Style tag input -->
         <div class="filter-field">
-          <label class="filter-field__label" for="filter-style">Style</label>
+          <label class="filter-field__label" for="filter-style">
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+            Style
+          </label>
           <div class="tag-input-wrapper" id="style-wrapper">
             <div class="tag-input__tags" id="style-tags" aria-live="polite"></div>
             <input
@@ -178,6 +234,7 @@
         <table class="charts-table" id="charts-table" aria-label="Chord charts">
           <thead>
             <tr>
+              <th class="col-view" scope="col">View</th>
               <th class="col-title sortable" data-sort="title" scope="col" tabindex="0" aria-sort="none">
                 Title <span class="sort-icon" aria-hidden="true"></span>
               </th>
@@ -197,7 +254,6 @@
                 BPM <span class="sort-icon" aria-hidden="true"></span>
               </th>
               <th class="col-open" scope="col">Open</th>
-              <th class="col-view" scope="col">View</th>
               <th class="col-musicxml" scope="col">MusicXML</th>
             </tr>
           </thead>

@@ -14,6 +14,8 @@ import {
 
 const page = document.getElementById('page-container');
 const btnRandomViewer = document.getElementById('btn-random-viewer');
+const CHART_BASE_WIDTH = 760;
+const CHART_FIT_BREAKPOINT = 1080;
 
 const state = {
   chart: null,
@@ -32,9 +34,52 @@ const setPageTitle = (title = 'Chart Detail') => {
   document.title = `${title} - Chord Charts Library`;
 };
 
+const goBackOrFallback = () => {
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+
+  window.location.href = 'index.html';
+};
+
+const bindHistoryBackLinks = () => {
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-history-back]');
+    if (!link) return;
+
+    event.preventDefault();
+    goBackOrFallback();
+  });
+};
+
 const formatTranspose = (value) => {
   if (value > 0) return `+${value}`;
   return String(value);
+};
+
+const getResponsiveChartScale = () => {
+  const userScale = state.fontScale / 100;
+  const paper = document.querySelector('.lead-sheet-paper');
+
+  if (!paper || window.innerWidth > CHART_FIT_BREAKPOINT) {
+    return userScale;
+  }
+
+  const style = window.getComputedStyle(paper);
+  const horizontalPadding =
+    parseFloat(style.paddingLeft || 0) + parseFloat(style.paddingRight || 0);
+  const contentWidth = Math.max(0, paper.clientWidth - horizontalPadding);
+  const fitScale = Math.min(1, contentWidth / CHART_BASE_WIDTH);
+
+  return userScale * fitScale;
+};
+
+const updateChartScale = () => {
+  const paper = document.querySelector('.lead-sheet-paper');
+  if (!paper) return;
+
+  paper.style.setProperty('--chart-scale', getResponsiveChartScale().toFixed(3));
 };
 
 const makeMetaItems = (chart, renderedSong) => [
@@ -78,7 +123,7 @@ const renderError = (message) => {
         <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
         <h1>Chart unavailable</h1>
         <p>${esc(message)}</p>
-        <a href="index.html" class="viewer-action viewer-action--secondary">
+        <a href="index.html" class="viewer-action viewer-action--secondary" data-history-back>
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           Back to library
         </a>
@@ -93,7 +138,7 @@ const renderShell = () => {
   page.innerHTML = `
     <main class="viewer-shell">
       <section class="viewer-topbar" aria-label="Chart navigation">
-        <a href="index.html" class="viewer-back">
+        <a href="index.html" class="viewer-back" data-history-back>
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           Library
         </a>
@@ -219,8 +264,7 @@ const updateControls = () => {
 
 const refreshChart = () => {
   const target = document.getElementById('chart-render-target');
-  document.querySelector('.lead-sheet-paper')
-    .style.setProperty('--chart-scale', `${state.fontScale / 100}`);
+  updateChartScale();
 
   state.renderedSong = renderIRealSong({
     song: state.parsedSong,
@@ -296,10 +340,12 @@ const bindEvents = () => {
   document.getElementById('btn-copy-url').addEventListener('click', async () => {
     await navigator.clipboard.writeText(state.chart.url || '');
   });
+  window.addEventListener('resize', updateChartScale);
 };
 
 const init = async () => {
   renderLoading();
+  bindHistoryBackLinks();
 
   btnRandomViewer?.addEventListener('click', async () => {
     btnRandomViewer.disabled = true;
