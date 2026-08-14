@@ -3,7 +3,6 @@
  * @description Shared helpers around the vendored ireal-renderer libraries.
  */
 
-const PLAYLIST_CLASS = window.IRealPlaylist;
 const RENDERER_CLASS = window.iRealRenderer;
 
 /**
@@ -49,13 +48,81 @@ const normalizeIRealUrl = (url) => {
   return url ?? '';
 };
 
+const decodeIRealPayload = (url) => {
+  const normalized = normalizeIRealUrl(String(url ?? '').trim());
+  if (!normalized.startsWith('irealb://')) return null;
+
+  try {
+    return decodeURIComponent(normalized.slice('irealb://'.length));
+  } catch (error) {
+    return null;
+  }
+};
+
+const obfusc50 = (s) => {
+  const chars = s.split('');
+  for (let i = 0; i < 5; i += 1) {
+    chars[49 - i] = s[i];
+    chars[i] = s[49 - i];
+  }
+  for (let i = 10; i < 24; i += 1) {
+    chars[49 - i] = s[i];
+    chars[i] = s[49 - i];
+  }
+  return chars.join('');
+};
+
+const unscrambleMusic = (s) => {
+  let text = String(s ?? '');
+  let result = '';
+
+  while (text.length > 51) {
+    const chunk = text.slice(0, 50);
+    text = text.slice(50);
+    result += obfusc50(chunk);
+  }
+
+  result += text;
+  return result.replace(/Kcl/g, '| x').replace(/LZ/g, ' |').replace(/XyQ/g, '   ');
+};
+
+const parseIRealSongData = (url) => {
+  const decoded = decodeIRealPayload(url);
+  if (!decoded) return null;
+
+  const data = decoded.split('===')[0];
+  if (!data) return null;
+
+  const parts = data.split('=');
+  if (parts.length < 6) return null;
+
+  const title = parts[0] ?? '';
+  const composerRaw = parts[1] ?? '';
+  const composerSplit = composerRaw.split(' ');
+  const composer = composerSplit.length === 2 ? `${composerSplit[1]} ${composerSplit[0]}` : composerRaw;
+  const hasEmptyStyleSlot = parts[2] === '';
+  const style = hasEmptyStyleSlot ? (parts[3] ?? '') : (parts[2] ?? '');
+  const key = hasEmptyStyleSlot ? (parts[4] ?? '') : (parts[3] ?? '');
+  const transpose = Number(hasEmptyStyleSlot ? parts[5] : parts[4]) || 0;
+  const musicPart = hasEmptyStyleSlot ? (parts[6] ?? '') : (parts[5] ?? '');
+  const bpm = Number(hasEmptyStyleSlot ? parts[8] : parts[7]) || 0;
+  const repeats = Number(hasEmptyStyleSlot ? parts[9] : parts[8]) || 3;
+  const musicPrefix = '1r34LbKcu7';
+  const musicIndex = musicPart.indexOf(musicPrefix);
+  const music = musicIndex >= 0
+    ? unscrambleMusic(musicPart.slice(musicIndex + musicPrefix.length))
+    : musicPart;
+
+  return { title, composer, style, key, transpose, bpm, repeats, music };
+};
+
 /**
  * Parse the first song from an iReal URL.
  * @param {string} url
  * @returns {{ song: object, renderer: object }}
  */
 export const parseIRealUrl = (url) => {
-  if (!PLAYLIST_CLASS || !RENDERER_CLASS) {
+  if (!RENDERER_CLASS) {
     throw new Error('iReal renderer libraries are not loaded.');
   }
 
@@ -63,9 +130,8 @@ export const parseIRealUrl = (url) => {
     throw new Error('Chart URL is not a supported iReal URI.');
   }
 
-  const playlist = new PLAYLIST_CLASS(normalizeIRealUrl(url));
-  const song = playlist.songs?.[0];
-  if (!song) throw new Error('No song could be decoded from the iReal URI.');
+  const song = parseIRealSongData(url);
+  if (!song || !song.music) throw new Error('No song could be decoded from the iReal URI.');
 
   const renderer = new RENDERER_CLASS();
   renderer.parse(song);
@@ -115,4 +181,3 @@ export const getIRealSchemeLabel = (url = '') => {
   if (url.startsWith('irealb://')) return 'IREALB';
   return 'UNKNOWN';
 };
-
