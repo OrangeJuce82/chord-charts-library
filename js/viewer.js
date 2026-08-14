@@ -3,14 +3,14 @@
  * @description Chart detail page controller.
  */
 
-import { fetchChartById, fetchRandomChart } from './api.js?v=20260814';
+import { fetchChartById, fetchRandomChart } from './api.js?v=20260814.2';
 import {
   esc,
   getIRealSchemeLabel,
   parseIRealUrl,
   renderIRealSong,
   toNumber,
-} from './ireal-chart.js?v=20260814';
+} from './ireal-chart.js?v=20260814.2';
 
 const page = document.getElementById('page-container');
 const btnRandomViewer = document.getElementById('btn-random-viewer');
