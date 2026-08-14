@@ -12,7 +12,7 @@ A static web app to search, filter, preview, and open chord charts sourced from 
 
 ## Features
 
-- Instant title search with debounced network requests.
+- Instant title search with debounced client-side filtering.
 - Tag filters for `composer`, `groove`, and `style`, with autocomplete.
 - Shareable filter URLs: search text, tags, sort order, and current page are preserved in the URL.
 - Paginated table sortable by title, composer, groove, style, key, and BPM.
@@ -22,7 +22,7 @@ A static web app to search, filter, preview, and open chord charts sourced from 
 - Direct opening in iReal Pro through `irealb://` and `irealbook://` links.
 - MusicXML export from every table row.
 - Detailed chart viewer with visual rendering, transposition, adjustable chart size, minor chord notation modes, B/H notation, sign/comment highlighting, iReal URL copy, print support, and decoded iReal data display.
-- Installable PWA with manifest, icons, and a service worker caching the app shell, fonts, assets, and selected API responses.
+- Installable PWA with manifest, icons, and a service worker caching the app shell, fonts, and assets.
 - Responsive interface with no frontend framework and no build step.
 - Python tools to scrape iReal links from the forum and convert iReal URLs into CSV data.
 
@@ -33,7 +33,7 @@ A static web app to search, filter, preview, and open chord charts sourced from 
 | Layer | Technology |
 |---|---|
 | Frontend | HTML5, CSS3, vanilla JavaScript ES modules |
-| Data | [Supabase](https://supabase.com/) through the PostgREST API, without the Supabase SDK |
+| Data | IndexedDB local database, imported once from the CSV |
 | iReal rendering | [`ireal-renderer`](https://github.com/daumling/ireal-renderer), vendored in `js/vendor/ireal-renderer/` |
 | MusicXML export | [`ireal-musicxml`](https://github.com/infojunkie/ireal-musicxml), lazy-loaded through `esm.sh` |
 | PWA | Web App Manifest, Service Worker, Cache API |
@@ -55,7 +55,7 @@ The web app has no build step and no frontend framework dependency.
 - [`ireal-musicxml`](https://github.com/infojunkie/ireal-musicxml): used for client-side iReal to MusicXML conversion.
 - [`ireal-reader`](https://github.com/pianosnake/ireal-reader): reference for reading the iReal format.
 - [`accompaniser`](https://github.com/ironss/accompaniser): reference for `irealb://` unscrambling details.
-- Supabase/PostgREST: static-app friendly storage, filtering, sorting, pagination, and aggregation.
+- IndexedDB local database: browser-side filtering, sorting, pagination, and aggregation.
 - Scrapy: forum crawling and `irealb://` link extraction.
 - Typer/Rich: local CLI for turning iReal URL lists into CSV files with a terminal preview.
 
@@ -70,36 +70,7 @@ git clone https://github.com/OrangeJuce82/chord-charts-library.git
 cd chord-charts-library
 ```
 
-### 2. Configure Supabase
-
-Edit `js/config.js`:
-
-```js
-export const SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';
-export const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-export const TABLE_NAME = 'ireal_pro_charts';
-```
-
-These are public `anon`/publishable keys. They are safe to expose in a static app as long as the Supabase table uses Row Level Security with a policy that only allows anonymous `SELECT`.
-
-### 3. Expected Table Schema
-
-The default table name is `ireal_pro_charts`.
-
-| Column | Suggested type | Description |
-|---|---|---|
-| `id` | uuid | Unique chart identifier |
-| `url` | text | iReal link, `irealb://` or `irealbook://` |
-| `title` | text | Chart title |
-| `composer` | text | Composer |
-| `style` | text | Style |
-| `key` | text | Key |
-| `transpose` | int4 | Default transposition |
-| `groove` | text | Groove |
-| `bpm` | int4 | Tempo |
-| `repeats` | int4 | Repeat count |
-
-### 4. Run Locally
+### 2. Run Locally
 
 ES modules must be served over HTTP, not opened with `file://`.
 
@@ -148,9 +119,9 @@ chord-charts-library/
 │   ├── fonts/                  # Fonts used by the chart renderer
 │   └── img/                    # SVG assets used by the iReal renderer
 ├── js/
-│   ├── api.js                  # Supabase/PostgREST calls
+│   ├── api.js                  # CSV-backed data access
 │   ├── app.js                  # State, filters, sorting, pagination, stats
-│   ├── config.js               # Supabase configuration
+│   ├── config.js               # App configuration
 │   ├── filters.js              # TagInput and debounce helper
 │   ├── ireal-chart.js          # Helpers around iReal parsing/rendering
 │   ├── pwa.js                  # Service worker registration
@@ -171,7 +142,7 @@ Push the repository to GitHub, then enable GitHub Pages:
 
 `Settings -> Pages -> Source: main branch / root`
 
-The site is deployed as-is, with no compilation step.
+The site is deployed as-is, with no compilation step. Keep `data/irealb_songs_with_metadata_20260503.csv` in the repository so the local database can be seeded on first run.
 
 ---
 

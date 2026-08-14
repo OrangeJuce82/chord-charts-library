@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'chord-charts-v1';
+const CACHE_VERSION = 'chord-charts-v2';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -31,8 +31,6 @@ const APP_SHELL = [
   './img/icons/icon-192.png',
   './img/icons/icon-512.png'
 ];
-
-const SUPABASE_HOST = 'mgwxjpryqhpnckruerij.supabase.co';
 
 const normalizeResponseForCache = async (response) => {
   const headers = new Headers(response.headers);
@@ -109,11 +107,6 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.method !== 'GET') return;
-
-  if (url.hostname === SUPABASE_HOST) {
-    event.respondWith(networkFirst(request));
-    return;
-  }
 
   if (url.origin === self.location.origin) {
     event.respondWith(cacheFirst(request));

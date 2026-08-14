@@ -51,6 +51,7 @@ const TOP_STATS_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 const totalCountEl   = document.getElementById('total-count');
 const resultsCountEl = document.getElementById('results-count');
+const dataLoadingEl  = document.getElementById('data-loading');
 const tbody          = document.getElementById('charts-tbody');
 const table          = document.getElementById('charts-table');
 const paginationEl   = document.getElementById('pagination');
@@ -287,6 +288,11 @@ const loadTopStats = async (total) => {
   }
 };
 
+const setDataLoading = (isLoading) => {
+  if (!dataLoadingEl) return;
+  dataLoadingEl.hidden = !isLoading;
+};
+
 // ─── Search ───────────────────────────────────────────────────────────────────
 
 /**
@@ -332,7 +338,7 @@ const search = async () => {
     tbody.innerHTML = `
       <tr class="row--empty">
         <td colspan="8">
-          ⚠️ Failed to load charts. Check your Supabase configuration in <code>js/config.js</code>.<br/>
+          Failed to load charts. Check that <code>data/irealb_songs_with_metadata_20260503.csv</code> is available.<br/>
           <small style="opacity:.5">${err.message}</small>
         </td>
       </tr>`;
@@ -446,6 +452,7 @@ const bindEvents = () => {
  * Bootstrap the application.
  */
 const init = async () => {
+  setDataLoading(true);
   // Fetch and display total chart count in the hero
   const totalCountPromise = fetchTotalCount()
     .then((count) => {
@@ -465,7 +472,11 @@ const init = async () => {
   totalCountPromise.then(count => loadTopStats(count));
 
   // Initial data load
-  await search();
+  try {
+    await search();
+  } finally {
+    setDataLoading(false);
+  }
 };
 
 // Wait for DOM
