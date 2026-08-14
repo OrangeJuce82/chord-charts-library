@@ -3,7 +3,7 @@
  * @description Local database access layer backed by IndexedDB.
  */
 
-import { DATA_URL, PAGE_SIZE } from './config.js';
+import { DATA_URL, PAGE_SIZE } from './config.js?v=20260814';
 
 const DB_NAME = 'chord-charts-library';
 const DB_VERSION = 2;
