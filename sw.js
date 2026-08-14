@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'chord-charts-v4';
+const CACHE_VERSION = 'chord-charts-v5';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -25,6 +25,8 @@ const APP_SHELL = [
   './js/viewer.js',
   './js/vendor/ireal-renderer/ireal-reader-tiny.js',
   './js/vendor/ireal-renderer/ireal-renderer.js',
+  './data/irealb_index_20260503.csv',
+  './data/url_map_shards/00.csv',
   './img/icons/favicon-16.png',
   './img/icons/favicon-32.png',
   './img/icons/apple-touch-icon.png',

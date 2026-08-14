@@ -7,16 +7,16 @@
  * State lives here; child modules are stateless and receive their data.
  */
 
-import { fetchCharts, fetchTotalCount, fetchRandomChart, fetchTopCategoricalStats } from './api.js?v=20260814.2';
-import { TagInput, debounce }                             from './filters.js?v=20260814.2';
+import { fetchCharts, fetchTotalCount, fetchRandomChart, fetchTopCategoricalStats } from './api.js?v=20260814.3';
+import { TagInput, debounce }                             from './filters.js?v=20260814.3';
 import {
   renderRows,
   showLoading,
   updateSortHeaders,
   renderPagination,
-}                                                         from './table.js?v=20260814.2';
-import { PAGE_SIZE, DEBOUNCE_MS }                         from './config.js?v=20260814.2';
-import { TOP_GROOVE_STATS, TOP_STYLE_STATS }              from './stats.js?v=20260814.2';
+}                                                         from './table.js?v=20260814.3';
+import { PAGE_SIZE, DEBOUNCE_MS }                         from './config.js?v=20260814.3';
+import { TOP_GROOVE_STATS, TOP_STYLE_STATS }              from './stats.js?v=20260814.3';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -338,7 +338,7 @@ const search = async () => {
     tbody.innerHTML = `
       <tr class="row--empty">
         <td colspan="8">
-          Failed to load charts. Check that the local database can be opened and seeded from <code>data/irealb_songs_with_metadata_20260503.csv</code>.<br/>
+          Failed to load charts. Check that <code>data/irealb_index_20260503.csv</code> is available.<br/>
           <small style="opacity:.5">${err.message}</small>
         </td>
       </tr>`;
