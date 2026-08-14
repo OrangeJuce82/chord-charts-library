@@ -127,10 +127,6 @@ const renderError = (message) => {
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           Back to library
         </a>
-        <a href="https://github.com/OrangeJuce82/chord-charts-library" class="viewer-action viewer-action--secondary" target="_blank" rel="noopener noreferrer">
-          <i class="fa-brands fa-github" aria-hidden="true"></i>
-          GitHub
-        </a>
       </section>
     </main>`;
 };
@@ -146,10 +142,6 @@ const renderUnsupportedChart = (chart, message) => {
           Library
         </a>
         <div class="viewer-topbar__actions">
-          <a href="https://github.com/OrangeJuce82/chord-charts-library" class="viewer-action" target="_blank" rel="noopener noreferrer" title="Open GitHub repository">
-            <i class="fa-brands fa-github" aria-hidden="true"></i>
-            GitHub
-          </a>
           <button id="btn-copy-url" class="icon-btn" type="button" title="Copy iReal URL" aria-label="Copy iReal URL">
             <i class="fa-regular fa-copy" aria-hidden="true"></i>
           </button>
@@ -201,10 +193,6 @@ const renderShell = () => {
           Library
         </a>
         <div class="viewer-topbar__actions">
-          <a href="https://github.com/OrangeJuce82/chord-charts-library" class="viewer-action" target="_blank" rel="noopener noreferrer" title="Open GitHub repository">
-            <i class="fa-brands fa-github" aria-hidden="true"></i>
-            GitHub
-          </a>
           <button id="btn-copy-url" class="icon-btn" type="button" title="Copy iReal URL" aria-label="Copy iReal URL">
             <i class="fa-regular fa-copy" aria-hidden="true"></i>
           </button>
