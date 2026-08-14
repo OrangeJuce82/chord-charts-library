@@ -6,7 +6,7 @@
 import { DATA_URL, PAGE_SIZE } from './config.js?v=20260814';
 
 const DB_NAME = 'chord-charts-library';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'charts';
 
 const DATA_PROMISE_KEY = '__chordChartsDataPromise__';
