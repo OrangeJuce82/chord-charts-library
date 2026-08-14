@@ -7,16 +7,16 @@
  * State lives here; child modules are stateless and receive their data.
  */
 
-import { fetchCharts, fetchTotalCount, fetchRandomChart, fetchTopCategoricalStats } from './api.js?v=20260814';
-import { TagInput, debounce }                             from './filters.js?v=20260814';
+import { fetchCharts, fetchTotalCount, fetchRandomChart, fetchTopCategoricalStats } from './api.js?v=20260814.2';
+import { TagInput, debounce }                             from './filters.js?v=20260814.2';
 import {
   renderRows,
   showLoading,
   updateSortHeaders,
   renderPagination,
-}                                                         from './table.js?v=20260814';
-import { PAGE_SIZE, DEBOUNCE_MS }                         from './config.js?v=20260814';
-import { TOP_GROOVE_STATS, TOP_STYLE_STATS }              from './stats.js?v=20260814';
+}                                                         from './table.js?v=20260814.2';
+import { PAGE_SIZE, DEBOUNCE_MS }                         from './config.js?v=20260814.2';
+import { TOP_GROOVE_STATS, TOP_STYLE_STATS }              from './stats.js?v=20260814.2';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 

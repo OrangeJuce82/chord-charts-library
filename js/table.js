@@ -4,7 +4,7 @@
  * All rendering is done via DOM APIs (no framework).
  */
 
-import { PAGE_SIZE } from './config.js?v=20260814';
+import { PAGE_SIZE } from './config.js?v=20260814.2';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
