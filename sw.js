@@ -32,8 +32,6 @@ const APP_SHELL = [
   './img/icons/icon-512.png'
 ];
 
-const SUPABASE_HOST = 'mgwxjpryqhpnckruerij.supabase.co';
-
 const normalizeResponseForCache = async (response) => {
   const headers = new Headers(response.headers);
   const body = await response.clone().arrayBuffer();
@@ -109,11 +107,6 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.method !== 'GET') return;
-
-  if (url.hostname === SUPABASE_HOST) {
-    event.respondWith(networkFirst(request));
-    return;
-  }
 
   if (url.origin === self.location.origin) {
     event.respondWith(cacheFirst(request));

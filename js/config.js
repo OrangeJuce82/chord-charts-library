@@ -1,18 +1,10 @@
 /**
  * @file config.js
  * @description Application configuration constants.
- *
- * ⚠️  Replace SUPABASE_URL and SUPABASE_ANON_KEY with your own values.
- *     These are PUBLIC (anon) keys — safe to expose in a static site,
- *     as long as your Supabase Row Level Security (RLS) policies are set
- *     to allow anonymous SELECT on the table.
  */
 
-export const SUPABASE_URL     = 'https://mgwxjpryqhpnckruerij.supabase.co';
-export const SUPABASE_ANON_KEY = 'sb_publishable_EsbQ_e1BbeQOS3TCcH8hpg_2FbC3DnB';
-
-/** Table name in Supabase */
-export const TABLE_NAME = 'ireal_pro_charts';
+/** Static CSV file that contains the whole library. */
+export const DATA_URL = './data/irealb_songs_with_metadata_20260503.csv';
 
 /** Number of rows per page */
 export const PAGE_SIZE = 50;
