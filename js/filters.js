@@ -26,14 +26,14 @@ export const debounce = (fn, delay) => {
 // ─── TagInput class ──────────────────────────────────────────────────────────
 
 /**
- * A tag-input component with Supabase-backed autocomplete.
+ * A tag-input component with CSV-backed autocomplete.
  *
  * @param {object} config
  * @param {HTMLElement} config.wrapper       - .tag-input-wrapper element
  * @param {HTMLElement} config.tagsContainer - div that holds rendered tags
  * @param {HTMLInputElement} config.input    - text input
  * @param {HTMLElement} config.suggestions   - <ul> for suggestions
- * @param {string}      config.column        - Supabase column to query
+ * @param {string}      config.column        - CSV column to query
  * @param {string}      config.tagClass      - CSS modifier class for tags
  * @param {Function}    config.onChange      - called with current tags array
  */

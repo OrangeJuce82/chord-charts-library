@@ -22,7 +22,7 @@ A static web app to search, filter, preview, and open chord charts sourced from 
 - Direct opening in iReal Pro through `irealb://` and `irealbook://` links.
 - MusicXML export from every table row.
 - Detailed chart viewer with visual rendering, transposition, adjustable chart size, minor chord notation modes, B/H notation, sign/comment highlighting, iReal URL copy, print support, and decoded iReal data display.
-- Installable PWA with manifest, icons, and a service worker caching the app shell, fonts, assets, and the CSV dataset.
+- Installable PWA with manifest, icons, and a service worker caching the app shell, fonts, and assets.
 - Responsive interface with no frontend framework and no build step.
 - Python tools to scrape iReal links from the forum and convert iReal URLs into CSV data.
 
@@ -33,7 +33,7 @@ A static web app to search, filter, preview, and open chord charts sourced from 
 | Layer | Technology |
 |---|---|
 | Frontend | HTML5, CSS3, vanilla JavaScript ES modules |
-| Data | Static CSV loaded in the browser |
+| Data | IndexedDB local database, imported once from the CSV |
 | iReal rendering | [`ireal-renderer`](https://github.com/daumling/ireal-renderer), vendored in `js/vendor/ireal-renderer/` |
 | MusicXML export | [`ireal-musicxml`](https://github.com/infojunkie/ireal-musicxml), lazy-loaded through `esm.sh` |
 | PWA | Web App Manifest, Service Worker, Cache API |
@@ -55,7 +55,7 @@ The web app has no build step and no frontend framework dependency.
 - [`ireal-musicxml`](https://github.com/infojunkie/ireal-musicxml): used for client-side iReal to MusicXML conversion.
 - [`ireal-reader`](https://github.com/pianosnake/ireal-reader): reference for reading the iReal format.
 - [`accompaniser`](https://github.com/ironss/accompaniser): reference for `irealb://` unscrambling details.
-- Static CSV: browser-side filtering, sorting, pagination, and aggregation.
+- IndexedDB local database: browser-side filtering, sorting, pagination, and aggregation.
 - Scrapy: forum crawling and `irealb://` link extraction.
 - Typer/Rich: local CLI for turning iReal URL lists into CSV files with a terminal preview.
 
@@ -142,7 +142,7 @@ Push the repository to GitHub, then enable GitHub Pages:
 
 `Settings -> Pages -> Source: main branch / root`
 
-The site is deployed as-is, with no compilation step. Keep `data/irealb_songs_with_metadata_20260503.csv` in the repository so the app can load it directly.
+The site is deployed as-is, with no compilation step. Keep `data/irealb_songs_with_metadata_20260503.csv` in the repository so the local database can be seeded on first run.
 
 ---
 

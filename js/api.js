@@ -1,9 +1,13 @@
 /**
  * @file api.js
- * @description Local data access layer backed by the static CSV export.
+ * @description Local database access layer backed by IndexedDB.
  */
 
 import { DATA_URL, PAGE_SIZE } from './config.js';
+
+const DB_NAME = 'chord-charts-library';
+const DB_VERSION = 2;
+const STORE_NAME = 'charts';
 
 const DATA_PROMISE_KEY = '__chordChartsDataPromise__';
 
@@ -12,14 +16,15 @@ const normalizeLower = (value) => normalize(value).toLowerCase();
 
 const csvUrl = () => new URL(DATA_URL, window.location.href).toString();
 
-const parseCsvLine = (line) => {
-  const values = [];
+const parseCsvText = (text) => {
+  const rows = [];
+  let row = [];
   let value = '';
   let inQuotes = false;
 
-  for (let i = 0; i < line.length; i += 1) {
-    const char = line[i];
-    const next = line[i + 1];
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    const next = text[i + 1];
 
     if (inQuotes) {
       if (char === '"') {
@@ -41,65 +46,139 @@ const parseCsvLine = (line) => {
     }
 
     if (char === ',') {
-      values.push(value);
+      row.push(value);
       value = '';
+      continue;
+    }
+
+    if (char === '\n') {
+      row.push(value);
+      rows.push(row);
+      row = [];
+      value = '';
+      continue;
+    }
+
+    if (char === '\r') {
       continue;
     }
 
     value += char;
   }
 
-  values.push(value);
-  return values;
+  if (value.length || row.length) {
+    row.push(value);
+    rows.push(row);
+  }
+
+  return rows;
+};
+
+const openDb = () => new Promise((resolve, reject) => {
+  const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+  request.onupgradeneeded = () => {
+    const db = request.result;
+    if (db.objectStoreNames.contains(STORE_NAME)) {
+      db.deleteObjectStore(STORE_NAME);
+    }
+    const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+    store.createIndex('title', 'title', { unique: false });
+    store.createIndex('composer', 'composer', { unique: false });
+    store.createIndex('style', 'style', { unique: false });
+    store.createIndex('groove', 'groove', { unique: false });
+    store.createIndex('key', 'key', { unique: false });
+    store.createIndex('bpm', 'bpm', { unique: false });
+  };
+
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+
+const idbRequest = (request) => new Promise((resolve, reject) => {
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+
+const getAllRowsFromDb = async (db) => {
+  const tx = db.transaction(STORE_NAME, 'readonly');
+  const store = tx.objectStore(STORE_NAME);
+  const rows = await idbRequest(store.getAll());
+  return rows.map((row) => ({
+    ...row,
+    _search: {
+      title: normalizeLower(row.title),
+      composer: normalizeLower(row.composer),
+      groove: normalizeLower(row.groove),
+      style: normalizeLower(row.style),
+    },
+  }));
+};
+
+const importCsvToDb = async (db) => {
+  const response = await fetch(csvUrl(), { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`CSV load failed: ${response.status}`);
+  }
+
+  const text = await response.text();
+  const records = parseCsvText(text.replace(/^\uFEFF/, ''));
+  if (!records.length) return [];
+
+  const headers = records[0];
+  const rows = [];
+
+  for (let i = 1; i < records.length; i += 1) {
+    const raw = records[i];
+    if (!raw.length) continue;
+
+    const row = {};
+    headers.forEach((header, index) => {
+      row[header] = raw[index] ?? '';
+    });
+
+    rows.push(row);
+  }
+
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const store = tx.objectStore(STORE_NAME);
+  for (const row of rows) {
+    store.put(row);
+  }
+  await new Promise((resolve, reject) => {
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+
+  return rows.map((row) => ({
+    ...row,
+    _search: {
+      title: normalizeLower(row.title),
+      composer: normalizeLower(row.composer),
+      groove: normalizeLower(row.groove),
+      style: normalizeLower(row.style),
+    },
+  }));
 };
 
 const loadData = async () => {
   if (!window[DATA_PROMISE_KEY]) {
     window[DATA_PROMISE_KEY] = (async () => {
-      const response = await fetch(csvUrl(), { cache: 'force-cache' });
-      if (!response.ok) {
-        throw new Error(`CSV load failed: ${response.status}`);
+      const db = await openDb();
+      try {
+        const existing = await getAllRowsFromDb(db);
+        if (existing.length) return { rows: existing };
+
+        const imported = await importCsvToDb(db);
+        return { rows: imported };
+      } finally {
+        db.close();
       }
-
-      const text = await response.text();
-      const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(Boolean);
-      if (!lines.length) return { rows: [], counts: new Map(), distinct: {} };
-
-      const headers = parseCsvLine(lines[0]);
-      const rows = [];
-      const counts = new Map();
-      const distinct = {
-        composer: new Set(),
-        groove: new Set(),
-        style: new Set(),
-      };
-
-      for (let i = 1; i < lines.length; i += 1) {
-        const raw = parseCsvLine(lines[i]);
-        if (!raw.length) continue;
-
-        const row = {};
-        headers.forEach((header, index) => {
-          row[header] = raw[index] ?? '';
-        });
-        row._search = {
-          title: normalizeLower(row.title),
-          composer: normalizeLower(row.composer),
-          groove: normalizeLower(row.groove),
-          style: normalizeLower(row.style),
-        };
-
-        rows.push(row);
-        counts.set('total', (counts.get('total') ?? 0) + 1);
-
-        ['composer', 'groove', 'style'].forEach((column) => {
-          const value = normalize(row[column]);
-          if (value) distinct[column].add(value);
-        });
-      }
-
-      return { rows, counts, distinct };
-    })();
+    })().catch((error) => {
+      window[DATA_PROMISE_KEY] = null;
+      throw error;
+    });
   }
 
   return window[DATA_PROMISE_KEY];
@@ -111,20 +190,17 @@ const matchesWords = (haystack, query) => {
   return words.every((word) => haystack.includes(word));
 };
 
-const getComparable = (value) => {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : normalizeLower(value);
-};
-
 const compareRows = (a, b, sortCol, sortDir) => {
-  const av = getComparable(a[sortCol]);
-  const bv = getComparable(b[sortCol]);
+  const av = a[sortCol];
+  const bv = b[sortCol];
 
   let result = 0;
-  if (typeof av === 'number' && typeof bv === 'number') {
-    result = av - bv;
+  const an = Number(av);
+  const bn = Number(bv);
+  if (Number.isFinite(an) && Number.isFinite(bn)) {
+    result = an - bn;
   } else {
-    result = String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' });
+    result = normalizeLower(av).localeCompare(normalizeLower(bv), undefined, { sensitivity: 'base' });
   }
 
   if (result === 0) {
@@ -204,7 +280,7 @@ export const fetchCharts = async ({
   const filtered = filterRows(rows, { title, composers, grooves, styles, composerText });
   const sorted = filtered.slice().sort((a, b) => compareRows(a, b, sortCol, sortDir));
   const from = page * pageSize;
-  const data = sorted.slice(from, from + pageSize).map(({ _search, ...row }) => row);
+  const data = sorted.slice(from, from + pageSize);
   return { data, total: filtered.length };
 };
 

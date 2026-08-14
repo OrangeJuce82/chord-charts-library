@@ -128,7 +128,57 @@ const renderError = (message) => {
           Back to library
         </a>
       </section>
+  </main>`;
+};
+
+const renderUnsupportedChart = (chart, message) => {
+  const schemeLabel = getIRealSchemeLabel(chart.url);
+  setPageTitle(chart.title || 'Chart unavailable');
+  page.innerHTML = `
+    <main class="viewer-shell">
+      <section class="viewer-topbar" aria-label="Chart navigation">
+        <a href="index.html" class="viewer-back" data-history-back>
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          Library
+        </a>
+        <div class="viewer-topbar__actions">
+          <button id="btn-copy-url" class="icon-btn" type="button" title="Copy iReal URL" aria-label="Copy iReal URL">
+            <i class="fa-regular fa-copy" aria-hidden="true"></i>
+          </button>
+          ${chart.url ? `
+            <a href="${esc(chart.url)}" class="viewer-action" title="Open in iReal Pro">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+              ${schemeLabel}
+            </a>` : ''}
+        </div>
+      </section>
+
+      <header class="viewer-titleblock">
+        <h1>${esc(chart.title || 'Untitled chart')}</h1>
+        <p>${esc(chart.composer || 'Unknown composer')}</p>
+        <div id="viewer-meta" class="viewer-meta">
+          ${chart.key ? `<span class="viewer-pill viewer-pill--key"><strong>${esc(chart.key)}</strong></span>` : ''}
+          ${chart.style ? `<span class="viewer-pill"><i class="fa-solid fa-music" aria-hidden="true"></i>${esc(chart.style)}</span>` : ''}
+          ${chart.groove ? `<span class="viewer-pill"><i class="fa-solid fa-drum" aria-hidden="true"></i>${esc(chart.groove)}</span>` : ''}
+          ${chart.bpm ? `<span class="viewer-pill"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i>${esc(chart.bpm)} bpm</span>` : ''}
+        </div>
+      </header>
+
+      <main class="viewer-layout">
+        <section class="viewer-stage" aria-label="Chart unavailable">
+          <section class="viewer-state viewer-state--error">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <h2>Chart unavailable</h2>
+            <p>${esc(message)}</p>
+            <p>Open the original link in iReal Pro if you need the source chart.</p>
+          </section>
+        </section>
+      </main>
     </main>`;
+
+  document.getElementById('btn-copy-url')?.addEventListener('click', async () => {
+    await navigator.clipboard.writeText(chart.url || '');
+  });
 };
 
 const renderShell = () => {
@@ -377,16 +427,21 @@ const init = async () => {
       return;
     }
 
-    const { song, renderer } = parseIRealUrl(chart.url);
     state.chart = chart;
-    state.parsedSong = song;
-    state.renderer = renderer;
-    state.transpose = toNumber(chart.transpose, toNumber(song.transpose, 0));
+    try {
+      const { song, renderer } = parseIRealUrl(chart.url);
+      state.parsedSong = song;
+      state.renderer = renderer;
+      state.transpose = toNumber(chart.transpose, toNumber(song.transpose, 0));
 
-    setPageTitle(chart.title || song.title);
-    renderShell();
-    bindEvents();
-    refreshChart();
+      setPageTitle(chart.title || song.title);
+      renderShell();
+      bindEvents();
+      refreshChart();
+    } catch (parseError) {
+      console.warn('[viewer] chart parse failed', parseError);
+      renderUnsupportedChart(chart, 'This chart could not be decoded by the browser renderer.');
+    }
   } catch (error) {
     console.error('[viewer] failed to load chart', error);
     renderError(error.message);

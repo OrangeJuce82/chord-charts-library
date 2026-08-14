@@ -1,7 +1,7 @@
 /**
  * Fallback top style/groove counts computed from
  * data/irealb_songs_with_metadata_20260503.csv.
- * Runtime data is fetched from Supabase with aggregated count queries.
+ * Runtime data is now computed client-side from the same CSV.
  */
 
 export const TOP_STYLE_STATS = [
