@@ -3,18 +3,29 @@
  * @description Local database access layer backed by IndexedDB.
  */
 
-import { DATA_URL, PAGE_SIZE } from './config.js?v=20260814.2';
+import { INDEX_URL, PAGE_SIZE, URL_MAP_DIR } from './config.js?v=20260814.3';
 
 const DB_NAME = 'chord-charts-library';
 const DB_VERSION = 4;
 const STORE_NAME = 'charts';
 
 const DATA_PROMISE_KEY = '__chordChartsDataPromise__';
+let memoryRows = null;
 
-const normalize = (value) => String(value ?? '').trim();
+const normalize = (value) => String(value == null ? '' : value).trim();
 const normalizeLower = (value) => normalize(value).toLowerCase();
 
-const csvUrl = () => new URL(DATA_URL, window.location.href).toString();
+const csvUrl = () => new URL(INDEX_URL, window.location.href).toString();
+const urlMapUrlForId = (id) => {
+  const shard = String(id || '').slice(0, 2).toLowerCase();
+  return new URL(`${URL_MAP_DIR}/${shard}.csv`, window.location.href).toString();
+};
+
+const isMobileDevice = () => (
+  typeof window !== 'undefined'
+  && window.matchMedia
+  && window.matchMedia('(pointer: coarse)').matches
+);
 
 const parseCsvText = (text) => {
   const rows = [];
@@ -74,6 +85,95 @@ const parseCsvText = (text) => {
   return rows;
 };
 
+const parseCsvChunk = (chunk, state, onRow) => {
+  for (let i = 0; i < chunk.length; i += 1) {
+    const char = chunk[i];
+    const next = chunk[i + 1];
+
+    if (state.inQuotes) {
+      if (char === '"') {
+        if (next === '"') {
+          state.value += '"';
+          i += 1;
+        } else {
+          state.inQuotes = false;
+        }
+      } else {
+        state.value += char;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      state.inQuotes = true;
+      continue;
+    }
+
+    if (char === ',') {
+      state.row.push(state.value);
+      state.value = '';
+      continue;
+    }
+
+    if (char === '\n') {
+      state.row.push(state.value);
+      onRow(state.row);
+      state.row = [];
+      state.value = '';
+      continue;
+    }
+
+    if (char === '\r') continue;
+    state.value += char;
+  }
+};
+
+const rowsFromCsvRecords = (records) => {
+  if (!records.length) return [];
+
+  const headers = records[0];
+  const rows = [];
+
+  for (let i = 1; i < records.length; i += 1) {
+    const raw = records[i];
+    if (!raw.length) continue;
+
+    const row = {};
+    headers.forEach((header, index) => {
+      row[header] = raw[index] ?? '';
+    });
+    rows.push(row);
+  }
+
+  return rows;
+};
+
+const withSearchFields = (rows) => rows.map((row) => ({
+  ...row,
+  _search: {
+    title: normalizeLower(row.title),
+    composer: normalizeLower(row.composer),
+    groove: normalizeLower(row.groove),
+    style: normalizeLower(row.style),
+  },
+}));
+
+const loadUrlMap = async (id) => {
+  const response = await fetch(urlMapUrlForId(id), { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`URL map load failed: ${response.status}`);
+  }
+
+  const text = await response.text();
+  const records = parseCsvText(text.replace(/^\uFEFF/, ''));
+  const rows = rowsFromCsvRecords(records);
+  const map = new Map();
+  rows.forEach((row) => {
+    if (row.id) map.set(row.id, row.url || '');
+  });
+  return map;
+};
+
 const openDb = () => new Promise((resolve, reject) => {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -94,6 +194,14 @@ const openDb = () => new Promise((resolve, reject) => {
   request.onsuccess = () => resolve(request.result);
   request.onerror = () => reject(request.error);
 });
+
+const isIndexedDbUsable = () => {
+  try {
+    return typeof indexedDB !== 'undefined';
+  } catch (error) {
+    return false;
+  }
+};
 
 const idbRequest = (request) => new Promise((resolve, reject) => {
   request.onsuccess = () => resolve(request.result);
@@ -121,59 +229,124 @@ const importCsvToDb = async (db) => {
     throw new Error(`CSV load failed: ${response.status}`);
   }
 
-  const text = await response.text();
-  const records = parseCsvText(text.replace(/^\uFEFF/, ''));
-  if (!records.length) return [];
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const store = tx.objectStore(STORE_NAME);
+  const bufferedRows = [];
+  let headers = null;
+  let totalRows = [];
 
-  const headers = records[0];
-  const rows = [];
+  const flush = () => {
+    if (!bufferedRows.length) return;
+    bufferedRows.forEach((row) => store.put(row));
+    totalRows = totalRows.concat(bufferedRows);
+    bufferedRows.length = 0;
+  };
 
-  for (let i = 1; i < records.length; i += 1) {
-    const raw = records[i];
-    if (!raw.length) continue;
+  const pushRow = (rawRow) => {
+    if (!headers) {
+      headers = rawRow;
+      return;
+    }
+
+    if (!rawRow.length) return;
 
     const row = {};
     headers.forEach((header, index) => {
-      row[header] = raw[index] ?? '';
+      row[header] = rawRow[index] || '';
     });
+    bufferedRows.push(row);
+    if (bufferedRows.length >= 250) flush();
+  };
 
-    rows.push(row);
+  const state = { inQuotes: false, row: [], value: '' };
+
+  if (response.body && typeof response.body.getReader === 'function' && typeof TextDecoder === 'function') {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let firstChunk = true;
+
+    while (true) {
+      const result = await reader.read();
+      if (result.done) break;
+      let textChunk = decoder.decode(result.value, { stream: true });
+      if (firstChunk) {
+        textChunk = textChunk.replace(/^\uFEFF/, '');
+        firstChunk = false;
+      }
+      parseCsvChunk(textChunk, state, pushRow);
+    }
+    const tail = decoder.decode();
+    if (tail) parseCsvChunk(tail, state, pushRow);
+  } else {
+    const text = await response.text();
+    const records = parseCsvText(text.replace(/^\uFEFF/, ''));
+    const rows = rowsFromCsvRecords(records);
+    rows.forEach((row) => bufferedRows.push(row));
+    flush();
   }
 
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  const store = tx.objectStore(STORE_NAME);
-  for (const row of rows) {
-    store.put(row);
+  if (state.value.length || state.row.length) {
+    state.row.push(state.value);
+    pushRow(state.row);
   }
+
+  flush();
+
   await new Promise((resolve, reject) => {
     tx.oncomplete = resolve;
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error);
   });
 
-  return rows.map((row) => ({
-    ...row,
-    _search: {
-      title: normalizeLower(row.title),
-      composer: normalizeLower(row.composer),
-      groove: normalizeLower(row.groove),
-      style: normalizeLower(row.style),
-    },
-  }));
+  return withSearchFields(totalRows);
 };
 
 const loadData = async () => {
   if (!window[DATA_PROMISE_KEY]) {
     window[DATA_PROMISE_KEY] = (async () => {
-      const db = await openDb();
       try {
-        const existing = await getAllRowsFromDb(db);
-        if (existing.length) return { rows: existing };
+        if (isMobileDevice()) {
+          if (!memoryRows) {
+            const response = await fetch(csvUrl(), { cache: 'no-store' });
+            if (!response.ok) {
+              throw new Error(`CSV load failed: ${response.status}`);
+            }
 
-        const imported = await importCsvToDb(db);
-        return { rows: imported };
-      } finally {
-        db.close();
+            const text = await response.text();
+            const records = parseCsvText(text.replace(/^\uFEFF/, ''));
+            memoryRows = withSearchFields(rowsFromCsvRecords(records));
+          }
+          return { rows: memoryRows };
+        }
+
+        if (!isIndexedDbUsable()) {
+          throw new Error('IndexedDB unavailable');
+        }
+
+        const db = await openDb();
+        try {
+          const existing = await getAllRowsFromDb(db);
+          if (existing.length) return { rows: existing };
+
+          const imported = await importCsvToDb(db);
+          return { rows: imported };
+        } finally {
+          db.close();
+        }
+      } catch (error) {
+        console.warn('[api] IndexedDB unavailable, using in-memory CSV cache', error);
+        if (memoryRows) return { rows: memoryRows };
+
+        const response = await fetch(csvUrl(), { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`CSV load failed: ${response.status}`);
+        }
+
+        const text = await response.text();
+        const records = parseCsvText(text.replace(/^\uFEFF/, ''));
+        memoryRows = withSearchFields(rowsFromCsvRecords(records));
+
+        return { rows: memoryRows };
       }
     })().catch((error) => {
       window[DATA_PROMISE_KEY] = null;
@@ -330,5 +503,12 @@ export const fetchRandomChart = async () => {
 export const fetchChartById = async (id) => {
   const { rows } = await loadData();
   const chart = rows.find((row) => row.id === id);
-  return chart ? { ...chart } : null;
+  if (!chart) return null;
+  try {
+    const urlMap = await loadUrlMap(id);
+    return { ...chart, url: urlMap.get(id) || '' };
+  } catch (error) {
+    console.warn('[api] url map unavailable', error);
+    return { ...chart, url: '' };
+  }
 };

@@ -3,14 +3,14 @@
  * @description Chart detail page controller.
  */
 
-import { fetchChartById, fetchRandomChart } from './api.js?v=20260814.2';
+import { fetchChartById, fetchRandomChart } from './api.js?v=20260814.3';
 import {
   esc,
   getIRealSchemeLabel,
   parseIRealUrl,
   renderIRealSong,
   toNumber,
-} from './ireal-chart.js?v=20260814.2';
+} from './ireal-chart.js?v=20260814.3';
 
 const page = document.getElementById('page-container');
 const btnRandomViewer = document.getElementById('btn-random-viewer');
@@ -83,8 +83,8 @@ const updateChartScale = () => {
 };
 
 const makeMetaItems = (chart, renderedSong) => [
-  chart.key || renderedSong?.key
-    ? `<span class="viewer-pill viewer-pill--key"><strong>${esc(renderedSong?.key || chart.key)}</strong></span>`
+  chart.key || (renderedSong && renderedSong.key)
+    ? `<span class="viewer-pill viewer-pill--key"><strong>${esc((renderedSong && renderedSong.key) || chart.key)}</strong></span>`
     : '',
   chart.composer
     ? `<span class="viewer-pill"><i class="fa-solid fa-user-pen" aria-hidden="true"></i>${esc(chart.composer)}</span>`
@@ -176,9 +176,12 @@ const renderUnsupportedChart = (chart, message) => {
       </main>
     </main>`;
 
-  document.getElementById('btn-copy-url')?.addEventListener('click', async () => {
-    await navigator.clipboard.writeText(chart.url || '');
-  });
+  const copyBtn = document.getElementById('btn-copy-url');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(chart.url || '');
+    });
+  }
 };
 
 const renderShell = () => {
@@ -208,8 +211,8 @@ const renderShell = () => {
       </section>
 
       <header class="viewer-titleblock">
-        <h1>${esc(chart.title || state.parsedSong?.title || 'Untitled chart')}</h1>
-        <p>${esc(chart.composer || state.parsedSong?.composer || 'Unknown composer')}</p>
+        <h1>${esc(chart.title || (state.parsedSong && state.parsedSong.title) || 'Untitled chart')}</h1>
+        <p>${esc(chart.composer || (state.parsedSong && state.parsedSong.composer) || 'Unknown composer')}</p>
         <div id="viewer-meta" class="viewer-meta"></div>
       </header>
 
@@ -328,13 +331,13 @@ const refreshChart = () => {
 
   document.getElementById('viewer-meta').innerHTML = makeMetaItems(state.chart, state.renderedSong);
   document.getElementById('lead-sheet-title').textContent =
-    state.chart.title || state.renderedSong?.title || state.parsedSong?.title || '';
+    state.chart.title || (state.renderedSong && state.renderedSong.title) || (state.parsedSong && state.parsedSong.title) || '';
   document.getElementById('lead-sheet-style').textContent =
     state.chart.style ? `(${state.chart.style})` : '';
   document.getElementById('lead-sheet-composer').textContent =
-    state.chart.composer || state.renderedSong?.composer || state.parsedSong?.composer || '';
+    state.chart.composer || (state.renderedSong && state.renderedSong.composer) || (state.parsedSong && state.parsedSong.composer) || '';
   document.getElementById('decoded-panel').open = state.showDecoded;
-  document.getElementById('decoded-output').textContent = state.parsedSong?.music || '';
+  document.getElementById('decoded-output').textContent = (state.parsedSong && state.parsedSong.music) || '';
   updateControls();
 };
 
@@ -397,11 +400,11 @@ const init = async () => {
   renderLoading();
   bindHistoryBackLinks();
 
-  btnRandomViewer?.addEventListener('click', async () => {
+  if (btnRandomViewer) btnRandomViewer.addEventListener('click', async () => {
     btnRandomViewer.disabled = true;
     try {
       const chart = await fetchRandomChart();
-      if (chart?.id) {
+      if (chart && chart.id) {
         window.location.href = `view?id=${encodeURIComponent(chart.id)}`;
       } else {
         alert('Could not find a random chart. Please try again.');

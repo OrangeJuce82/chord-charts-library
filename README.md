@@ -142,7 +142,7 @@ Push the repository to GitHub, then enable GitHub Pages:
 
 `Settings -> Pages -> Source: main branch / root`
 
-The site is deployed as-is, with no compilation step. Keep `data/irealb_songs_with_metadata_20260503.csv` in the repository so the local database can be seeded on first run.
+The site is deployed as-is, with no compilation step. Keep `data/irealb_index_20260503.csv` and the `data/url_map_shards/` directory in the repository so the app can load a lightweight index and resolve chart URLs on demand.
 
 ---
 

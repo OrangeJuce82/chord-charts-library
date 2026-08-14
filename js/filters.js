@@ -4,8 +4,8 @@
  * Added: onInputChange callback for live partial-text searching.
  */
 
-import { fetchSuggestions } from './api.js?v=20260814.2';
-import { DEBOUNCE_MS, AUTOCOMPLETE_LIMIT } from './config.js?v=20260814.2';
+import { fetchSuggestions } from './api.js?v=20260814.3';
+import { DEBOUNCE_MS, AUTOCOMPLETE_LIMIT } from './config.js?v=20260814.3';
 
 // ─── Utility ────────────────────────────────────────────────────────────────
 

@@ -22,7 +22,7 @@ export const toNumber = (value, fallback = 0) => {
  * @returns {string}
  */
 export const esc = (value) =>
-  String(value ?? '')
+  String(value == null ? '' : value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -44,12 +44,12 @@ const cloneSong = (song) => {
  * @returns {string}
  */
 const normalizeIRealUrl = (url) => {
-  if (url?.startsWith('irealbook://')) return `irealb://${url.slice('irealbook://'.length)}`;
-  return url ?? '';
+  if (url && url.startsWith('irealbook://')) return `irealb://${url.slice('irealbook://'.length)}`;
+  return url == null ? '' : url;
 };
 
 const decodeIRealPayload = (url) => {
-  const normalized = normalizeIRealUrl(String(url ?? '').trim());
+  const normalized = normalizeIRealUrl(String(url == null ? '' : url).trim());
   if (!normalized.startsWith('irealb://')) return null;
 
   try {
@@ -73,7 +73,7 @@ const obfusc50 = (s) => {
 };
 
 const unscrambleMusic = (s) => {
-  let text = String(s ?? '');
+  let text = String(s == null ? '' : s);
   let result = '';
 
   while (text.length > 51) {
@@ -96,15 +96,15 @@ const parseIRealSongData = (url) => {
   const parts = data.split('=');
   if (parts.length < 6) return null;
 
-  const title = parts[0] ?? '';
-  const composerRaw = parts[1] ?? '';
+  const title = parts[0] == null ? '' : parts[0];
+  const composerRaw = parts[1] == null ? '' : parts[1];
   const composerSplit = composerRaw.split(' ');
   const composer = composerSplit.length === 2 ? `${composerSplit[1]} ${composerSplit[0]}` : composerRaw;
   const hasEmptyStyleSlot = parts[2] === '';
-  const style = hasEmptyStyleSlot ? (parts[3] ?? '') : (parts[2] ?? '');
-  const key = hasEmptyStyleSlot ? (parts[4] ?? '') : (parts[3] ?? '');
+  const style = hasEmptyStyleSlot ? (parts[3] == null ? '' : parts[3]) : (parts[2] == null ? '' : parts[2]);
+  const key = hasEmptyStyleSlot ? (parts[4] == null ? '' : parts[4]) : (parts[3] == null ? '' : parts[3]);
   const transpose = Number(hasEmptyStyleSlot ? parts[5] : parts[4]) || 0;
-  const musicPart = hasEmptyStyleSlot ? (parts[6] ?? '') : (parts[5] ?? '');
+  const musicPart = hasEmptyStyleSlot ? (parts[6] == null ? '' : parts[6]) : (parts[5] == null ? '' : parts[5]);
   const bpm = Number(hasEmptyStyleSlot ? parts[8] : parts[7]) || 0;
   const repeats = Number(hasEmptyStyleSlot ? parts[9] : parts[8]) || 3;
   const musicPrefix = '1r34LbKcu7';
@@ -177,7 +177,7 @@ export const renderIRealSong = ({
  * @returns {'IREALB'|'IREALBOOK'|'UNKNOWN'}
  */
 export const getIRealSchemeLabel = (url = '') => {
-  if (url.startsWith('irealbook://')) return 'IREALBOOK';
-  if (url.startsWith('irealb://')) return 'IREALB';
+  if (url && url.startsWith('irealbook://')) return 'IREALBOOK';
+  if (url && url.startsWith('irealb://')) return 'IREALB';
   return 'UNKNOWN';
 };

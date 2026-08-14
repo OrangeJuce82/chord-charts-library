@@ -3,8 +3,11 @@
  * @description Application configuration constants.
  */
 
-/** Static CSV file that contains the whole library. */
-export const DATA_URL = './data/irealb_songs_with_metadata_20260503.csv';
+/** Static CSV file that contains the lightweight library index. */
+export const INDEX_URL = './data/irealb_index_20260503.csv';
+
+/** Directory containing chart ID → URL shards. */
+export const URL_MAP_DIR = './data/url_map_shards';
 
 /** Number of rows per page */
 export const PAGE_SIZE = 50;
